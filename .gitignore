@@ -1,3 +1,17 @@
-node_modules
+# Dependencias de Node (Playwright, etc.)
+node_modules/
 package-lock.json
 package.json
+# Entornos virtuales de Python
+venv/
+.venv/
+__pycache__/
+
+# Archivos de Playwright (si no son necesarios en el repo)
+playwright-core/
+
+# Archivos de registro y resultados
+*.log
+/test/api/
+/test/ui/
+/test/utils/
