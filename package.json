@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "pruebaWebSelenium",
   "main": "playwright.config.js",
-  "directories": { "test": "test" },
+  "directories": {
+    "test": "test"
+  },
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
@@ -12,10 +14,12 @@
     "postinstall": "playwright install"
   },
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "@faker-js/faker": "^10.0.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.55.1"
+    "@playwright/test": "^1.55.1",
+    "allure-playwright": "^3.4.1"
   },
   "keywords": [],
   "author": "",
