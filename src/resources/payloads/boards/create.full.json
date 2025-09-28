@@ -1,0 +1,8 @@
+{
+  "name": "TAB_QA_{{timestamp}}",
+  "desc": "Tablero de pruebas automatizadas",
+  "defaultLabels": false,
+  "defaultLists": false,
+  "prefs_permissionLevel": "private",
+  "prefs_background": "blue"
+}

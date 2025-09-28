@@ -1,14 +1,13 @@
-import { defineConfig } from '@playwright/test';
+const { defineConfig } = require('@playwright/test');
+require('dotenv').config();
 
-export default defineConfig({
+module.exports = defineConfig({
   testDir: './tests',
-  timeout: 30 * 1000,
-  retries: 1,
-  reporter: [['html'], ['list']], // puedes añadir Allure
+  reporter: [['list'], ['html']],
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.API_BASE || 'https://api.trello.com/1',
     headless: true,
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
   },
+  timeout: 30 * 1000,
+  retries: 0,
 });

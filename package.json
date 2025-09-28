@@ -19,6 +19,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "allure-playwright": "^3.4.1"
   },
   "keywords": [],
