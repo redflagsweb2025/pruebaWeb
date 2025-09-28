@@ -1,12 +1,12 @@
 // tests/workspace.spec.js
 const { test, expect } = require('@playwright/test');
-const { TrelloWorkspacePage } = require('../pages/TrelloWorkspacePage');
+const {WorkspacePage} = require('../../page/API/workspace_page');
 
 test.describe('Trello Workspace', () => {
-  const WORKSPACE_SLUG = 'tu-workspace-slug'; // ej: 'equipo-qa'
+  const WORKSPACE_SLUG = 'redflags5'; 
 
   test('crear y abrir un tablero', async ({ page }) => {
-    const ws = new TrelloWorkspacePage(page);
+    const ws = new WorkspacePage(page);
     await ws.open(WORKSPACE_SLUG);
 
     const boardName = `Tablero QA ${Date.now()}`;
@@ -19,7 +19,7 @@ test.describe('Trello Workspace', () => {
   });
 
   test('invitar un miembro (desde workspace o board)', async ({ page }) => {
-    const ws = new TrelloWorkspacePage(page);
+    const ws = new WorkspacePage(page);
     await ws.open(WORKSPACE_SLUG);
     await ws.openMembers();
     await ws.inviteMember('correo@example.com');
