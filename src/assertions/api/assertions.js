@@ -1,5 +1,6 @@
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
+
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv); // habilita formatos como "uri", "email", etc.
 

@@ -1,7 +1,6 @@
-const { cfg } = require('../../../utils/config.js'); // <-- tres puntos hacia arriba
+const { cfg } = require('../utils/api/config.js');
 
 function authParams() { return { key: cfg.key, token: cfg.token }; }
-
 async function createBoard(request, params) {
   return request.post(`${cfg.apiBase}/boards`, { params: { ...authParams(), ...params } });
 }
