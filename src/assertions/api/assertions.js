@@ -18,5 +18,4 @@ function validateSchema(schema, payload) {
     throw new Error('Schema inválido: ' + JSON.stringify(validate.errors, null, 2));
   }
 }
-
 module.exports = { expectStatusOK, validateSchema };
