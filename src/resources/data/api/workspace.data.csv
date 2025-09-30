@@ -1,0 +1,4 @@
+caseId,title,type,displayName,name,desc,expectedStatus
+WS-API-POST-001,"Crear workspace con displayName válido (mínimo)","valid","WS mínimo",,,200
+WS-API-POST-002,"Crear workspace con displayName válido + name (slug) propio y desc","valid","WS con slug","mi-ws","Workspace creado con desc",200
+WS-API-POST-005,"Crear workspace con name (slug) inválido (espacios/caracteres no permitidos)","valid","WS slug inválido","@@slug###",,200
