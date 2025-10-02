@@ -42,6 +42,60 @@ function trelloNormalizeSlug(s) {
 }
 // ---------------------------------------------------
 
+/* ======================================================================
+   1) TESTS BASE (SIN headers dinámicos): auth por URL desde .env
+   ======================================================================*/
+test.describe.parallel('Workspaces API — CSV (sin headers dinámicos)', () => {
+  for (const row of rows) {
+    if (row.type === 'valid') {
+      test(`POST /workspaces ${row.caseId} — ${row.title}`, async ({ request }, testInfo) => {
+        const payload = buildValidFromRow(row, uniq(testInfo));
+
+        // Create con servicios base (sin headers dinámicos)
+        const r = await createWorkspace(request, payload);
+
+        const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;//optiene el valor esperado del csv
+        //condición ? valor_si_verdadero : valor_si_falso
+
+        expect(r.status(), `Body: ${await safeBody(r)}`).toBe(exp);//ira al assert valida el estaus code
+
+        if (exp >= 200 && exp < 300) {//valida status code de 200
+          const body = await r.json();//captura la respuesta json si no da error 
+          expect(body.displayName).toBe(payload.displayName);//verifica que el displayname que enviaste este en la respuesta 
+          const prefix = trelloNormalizeSlug(payload.name);//normaliza el url del name que enviamos (slug)
+          expect(body.name.startsWith(prefix)).toBe(true);//verifica que el name comienza con el prefijo que actualizo
+
+          const g = await getWorkspace(request, body.id);//llama con el id al ws que se creo 
+          expect(g.status()).toBeGreaterThanOrEqual(200);//verifica que sea 200
+          expect(g.status()).toBeLessThan(300);//verifica que sea menor a 300
+
+          /* // cleanup best-effort
+          try {
+            const d = await deleteWorkspace(request, body.id);//elimina por el id
+            const code = d.status();//obtiene el status
+            const ok = (code >= 200 && code < 300) || code === 404 || code === 405;//verifica que salga 200 400 o 405
+            expect(ok, `DELETE devolvió ${code}`).toBe(true);//pide que el valor sea true o sea ok si no devuelve el mensaje
+          } catch (e) {
+            console.warn('DELETE falló (ignorado):', e?.message || e);
+          } */
+        }
+      });
+    }
+
+    if (row.type === 'invalid') {
+      test(
+        `POST /workspaces [INVALID] ${row.caseId || ''} ${row.reason ? `(${row.reason})` : ''}`.trim(),
+        async ({ request }, testInfo) => {
+          const payload = buildInvalidFromRow(row, uniq(testInfo));
+          const r = await createWorkspace(request, payload);
+          const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
+          expect(r.status(), `Body: ${await safeBody(r)}`).toBe(exp);
+        }
+      );
+    }
+  }
+});
+
 test.describe.parallel('Workspaces API — CSV × Headers parametrizado', () => {
   if (!rows || rows.length === 0) {
     test('CSV vacío - placeholder', async () => {
