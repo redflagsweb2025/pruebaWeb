@@ -3,7 +3,7 @@ require('dotenv').config();
 
 module.exports = defineConfig({
   testDir: './tests',
-  reporter: [['list'], ['html']],
+  reporter: [['list'], ['html'],['allure-playwright']],
   use: {
     baseURL: process.env.API_BASE || 'https://api.trello.com/1',
     headless: true,

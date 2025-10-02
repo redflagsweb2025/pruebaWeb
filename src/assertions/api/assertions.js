@@ -18,4 +18,11 @@ function validateSchema(schema, payload) {
     throw new Error('Schema inválido: ' + JSON.stringify(validate.errors, null, 2));
   }
 }
+function expectStatusIn(response, allowedStatuses) {
+  const st = response.status();
+  if (!allowedStatuses.includes(st)) {
+    throw new Error(`Esperado uno de ${allowedStatuses}, llegó ${st}\nBody: ${response.text()}`);
+  }
+}
+
 module.exports = { expectStatusOK, validateSchema };
