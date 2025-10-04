@@ -9,6 +9,10 @@
 /reports/
 /node_modules/
 /playwright-report/index.html
+<<<<<<< HEAD
 /test-results/.last-run.json
 /allure-report
 /allure-results
+=======
+/test-results/.last-run.json
+>>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0

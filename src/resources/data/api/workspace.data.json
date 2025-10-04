@@ -1,0 +1,20 @@
+{
+  "default": {
+    "Content-Type": "application/json",
+    "X-API-Key": "{{API_KEY}}",
+    "Authorization": "Bearer {{API_TOKEN}}"
+  },
+  "noAuth": {
+    "Content-Type": "application/json",
+    "X-API-Key": "{{API_KEY}}"
+  },
+  "noKey": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer {{API_TOKEN}}"
+  },
+  "badToken": {
+    "Content-Type": "application/json",
+    "X-API-Key": "{{API_KEY}}",
+    "Authorization": "Bearer BAD_TOKEN_EXAMPLE"
+  }
+}
