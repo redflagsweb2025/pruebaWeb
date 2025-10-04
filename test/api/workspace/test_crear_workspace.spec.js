@@ -1,103 +1,117 @@
 // test/api/workspace/test_workspace.spec.js
 const { test, expect } = require('@playwright/test');
 
-// services (API pura)
-const {createWorkspace, getWorkspace,createWorkspaceWithHeaders, getWorkspaceWithHeaders,} = require('../../../src/services/workspace_page');
+// services (refactor: una sola firma con options)
+const { createWorkspace, getWorkspace, deleteWorkspace } =
+  require('../../../src/services/workspace_page');
 
 // utils
 const { loadCsv } = require('../../../src/utils/api/csv');
-const {HDR_CASES, materializeHeaders, expectedStatusFor } =require('../../../src/resources/headers/workspace.headers');
 
-// payload builders (ajusta esta ruta si los tienes en otro lado)
-const { buildValidFromRow,buildInvalidFromRow,} = require('../../../src/resources/payloads/workspace.payloads');
+// headers/auth (solo para decidir variantes de auth y headers “extra”)
+const {
+  HDR_CASES,
+  materializeHeaders,   // si quieres meter headers no relacionados a auth
+  expectedStatusFor     // decide el status esperado según fila × hdrCase
+} = require('../../../src/resources/headers/workspace.headers');
+
+// builders
+const {
+  buildValidFromRow,
+  buildInvalidFromRow,
+} = require('../../../src/resources/payloads/workspace.payloads');
+
+// (opcional) asserts reutilizables si ya creaste el módulo
+const {
+  // helpers
+  safeBody,
+  // asserts
+  expectStatus,
+  expectStatusIn,
+  expectHeader,
+  expectJsonContentType,
+  expectLatencyMs,
+  expectBodyHasId,
+  expectSchema,
+} = require('../../../src/assertions/api/workspace.assert');
 
 // ----------------- helpers locales -----------------
-const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // 📌 declara UNA sola vez
+const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // una sola vez
 
 const uniq = (info) => `${Date.now()}-${info.workerIndex}-${info.retry}`;
-async function safeBody(res) {
-  try { return JSON.stringify(await res.json()); }
-  catch {
-    try { return await res.text(); } catch { return '<no-json>'; }
-  }
-}
 function trelloNormalizeSlug(s) {
   return String(s || '')
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')       // espacios -> guiones
+    .replace(/\s+/g, '-')       // espacios -> guiones (tu prefijo)
     .replace(/[^a-z0-9-]/g, '') // solo permitidos
-    .replace(/-/g, '');         // Trello elimina guiones en "name"
+    .replace(/-/g, '');         // Trello finalmente elimina guiones en "name"
 }
-// ---------------------------------------------------
 
-/* ======================================================================
-   1) TESTS BASE (SIN headers dinámicos): auth por URL desde .env
-   ======================================================================*/
-test.describe.parallel('Workspaces API — CSV (sin headers dinámicos)', () => {
+// ======================================================================
+// 1) TESTS BASE (casos del CSV usando auth por URL default, sin headers dinámicos)
+// ======================================================================
+test.describe.parallel('Workspaces API — CSV (default auth por URL)', () => {
   for (const row of rows) {
     if (row.type === 'valid') {
       test(`POST /workspaces ${row.caseId} — ${row.title}`, async ({ request }, testInfo) => {
         const payload = buildValidFromRow(row, uniq(testInfo));
+        const r = await createWorkspace(request, payload); // default: key/token del .env en la URL
 
-        // Create con servicios base (sin headers dinámicos)
-        const r = await createWorkspace(request, payload);
+        const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
+        await expectStatus(r, exp);
 
-        const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;//optiene el valor esperado del csv
-        //condición ? valor_si_verdadero : valor_si_falso
+        if (exp >= 200 && exp < 300) {
+          // Validaciones mínimas de OK
+          await expectBodyHasId(r);
+          const body = await r.json();
+          expect(body.displayName).toBe(payload.displayName);
 
-        expect(r.status(), `Body: ${await safeBody(r)}`).toBe(exp);//ira al assert valida el estaus code
+          const expectedPrefix = trelloNormalizeSlug(payload.name);
+          expect(body.name.startsWith(expectedPrefix)).toBe(true);
 
-        if (exp >= 200 && exp < 300) {//valida status code de 200
-          const body = await r.json();//captura la respuesta json si no da error 
-          expect(body.displayName).toBe(payload.displayName);//verifica que el displayname que enviaste este en la respuesta 
-          const prefix = trelloNormalizeSlug(payload.name);//normaliza el url del name que enviamos (slug)
-          expect(body.name.startsWith(prefix)).toBe(true);//verifica que el name comienza con el prefijo que actualizo
-
-          const g = await getWorkspace(request, body.id);//llama con el id al ws que se creo 
-          expect(g.status()).toBeGreaterThanOrEqual(200);//verifica que sea 200
-          expect(g.status()).toBeLessThan(300);//verifica que sea menor a 300
-
-         
+          // GET
+          const g = await getWorkspace(request, body.id);
+          await expectStatusIn(g, [200]); // 200 OK esperado
         }
       });
     }
 
-    if (row.type === 'invalid') {//para casos de tipo invalido
+    if (row.type === 'invalid') {
       test(
         `POST /workspaces [INVALID] ${row.caseId || ''} ${row.reason ? `(${row.reason})` : ''}`.trim(),
         async ({ request }, testInfo) => {
           const payload = buildInvalidFromRow(row, uniq(testInfo));
-          const r = await createWorkspace(request, payload);
+          const r = await createWorkspace(request, payload); // default auth
           const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
-          expect(r.status(), `Body: ${await safeBody(r)}`).toBe(exp);
+          await expectStatus(r, exp);
         }
       );
     }
   }
 });
 
-test.describe.parallel('Workspaces API — CSV × Headers parametrizado', () => {
+// ======================================================================
+// 2) TESTS CSV × Headers/Auth parametrizado (noAuth, noKey, badToken, default)
+// ======================================================================
+test.describe.parallel('Workspaces API — CSV × Headers/Auth parametrizado', () => {
   if (!rows || rows.length === 0) {
-    test('CSV vacío - placeholder', async () => {
-      test.skip(true, 'No hay filas en el CSV');
-    });
+    test('CSV vacío - placeholder', () => test.skip(true, 'No hay filas en el CSV'));
     return;
   }
 
-  // ========== MATRIZ: mismas filas del CSV × variantes de headers ==========
   for (const hdrCase of HDR_CASES) {
     test.describe(`hdr=${hdrCase}`, () => {
       for (const row of rows) {
-        if (row.type !== 'valid') continue; // auth se valida sobre casos válidos
+        if (row.type !== 'valid') continue; // autenticación se valida típicamente sobre casos válidos
 
         test(`POST /workspaces ${row.caseId} — ${row.title} (hdr=${hdrCase})`,
           async ({ request }, testInfo) => {
 
-            // headers “extra” desde tu JSON (Authorization/X-API-Key se sanitizan en el service)
+            // headers “extra” (no auth) desde tu JSON; Trello usa auth por URL:
             const headers = materializeHeaders(hdrCase);
 
-            // Cómo “romper” o variar la auth EN LA URL:
+            // variantes de auth por URL
             const authOpts =
               hdrCase === 'noAuth'   ? { includeToken: false } :
               hdrCase === 'noKey'    ? { includeKey:   false } :
@@ -107,37 +121,38 @@ test.describe.parallel('Workspaces API — CSV × Headers parametrizado', () => 
             const payload  = buildValidFromRow(row, uniq(testInfo));
             const expected = expectedStatusFor(row, hdrCase);
 
-            // Create (variantes con headers + auth por URL)
-            const r = await createWorkspaceWithHeaders(request, payload, {
-              headers,
-              auth: authOpts,
-            });
+            const r = await createWorkspace(request, payload, { headers, auth: authOpts });
 
-            expect(
+            await expect(
               r.status(),
               `Esperado ${expected}, recibido ${r.status()} → body: ${await safeBody(r)}`
             ).toBe(expected);
 
             if (expected >= 200 && expected < 300) {
+              await expectBodyHasId(r);
               const body = await r.json();
 
-              // Validaciones mínimas del OK
               expect(body.displayName).toBe(payload.displayName);
               const expectedPrefix = trelloNormalizeSlug(payload.name);
               expect(body.name.startsWith(expectedPrefix)).toBe(true);
 
-              // Get
-              const g = await getWorkspaceWithHeaders(request, body.id, {
-                headers,
-                auth: authOpts,
-              });
-              expect(g.status()).toBeGreaterThanOrEqual(200);
-              expect(g.status()).toBeLessThan(300);
-
+              // GET con las mismas variantes
+              const g = await getWorkspace(request, body.id, { headers, auth: authOpts });
+              await expectStatusIn(g, [200]);
             }
           }
         );
       }
     });
   }
+});
+
+// ======================================================================
+// 3) Limpieza opcional por test (si creaste algo y quieres borrarlo sí o sí)
+//    *Puedes moverlo a un fixture; a continuación un ejemplo inline por claridad.
+// ======================================================================
+test.afterEach(async ({ request }, testInfo) => {
+  // Si guardas IDs creados en testInfo.attachments o en variables compartidas, elimínalos aquí.
+  // Ejemplo (pseudo): for(const id of createdIds.splice(0)) { await deleteWorkspace(request, id); }
+  // Como no estamos guardando los IDs globalmente en este snippet, omitimos la limpieza aquí.
 });
