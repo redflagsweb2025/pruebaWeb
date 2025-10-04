@@ -81,6 +81,11 @@ function expectStatus(response, expected) {
     }
   }
 }
+function expectLatencyUnder(latencyMs, thresholdMs) {
+  if (latencyMs > thresholdMs) {
+    throw new Error(`Latencia ${latencyMs}ms supera el umbral de ${thresholdMs}ms`);
+  }
+}
 
-// Exporta todo
-module.exports = { test, expect, expectStatus };
+module.exports = { test, expect, expectStatus, expectLatencyUnder };
+
