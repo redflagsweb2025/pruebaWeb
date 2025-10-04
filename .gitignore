@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .env
 *.env
 .env.*
@@ -16,3 +17,22 @@
 =======
 /test-results/.last-run.json
 >>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0
+=======
+# Dependencias de Node (Playwright, etc.)
+node_modules/
+package-lock.json
+package.json
+# Entornos virtuales de Python
+venv/
+.venv/
+__pycache__/
+
+# Archivos de Playwright (si no son necesarios en el repo)
+playwright-core/
+
+# Archivos de registro y resultados
+*.log
+/test/api/
+/test/ui/
+/test/utils/
+>>>>>>> c91bf8918b0ef781bc868b2bed719d21078b74a4
