@@ -1,27 +1,23 @@
-// test/api/workspace/test_workspace.spec.js
 const { test, expect } = require('@playwright/test');
 
 // services (refactor: una sola firma con options)
-const { createWorkspace, getWorkspace, deleteWorkspace } =
+const { createWorkspace, getWorkspace } =
   require('../../../src/services/workspace_page');
 
 // utils
 const { loadCsv } = require('../../../src/utils/api/csv');
 
-// headers/auth (solo para decidir variantes de auth y headers “extra”)
+// headers/auth (variantes de auth y headers “extra”)
 const {
   HDR_CASES,
-  materializeHeaders,   // si quieres meter headers no relacionados a auth
-  expectedStatusFor     // decide el status esperado según fila × hdrCase
+  materializeHeaders,   // headers no relacionados a auth (User-Agent, Correlation-Id, etc.)
+  expectedStatusFor     // status esperado según fila × hdrCase
 } = require('../../../src/resources/headers/workspace.headers');
 
 // builders
-const {
-  buildValidFromRow,
-  buildInvalidFromRow,
-} = require('../../../src/resources/payloads/workspace.payloads');
+const {buildValidFromRow , buildInvalidFromRow } = require('../../../src/resources/payloads/workspace.payloads');
 
-// (opcional) asserts reutilizables si ya creaste el módulo
+// asserts reutilizables
 const {
   // helpers
   safeBody,
@@ -32,69 +28,30 @@ const {
   expectJsonContentType,
   expectLatencyMs,
   expectBodyHasId,
-  expectSchema,
+  expectSchema
 } = require('../../../src/assertions/api/workspace.assert');
 
 // ----------------- helpers locales -----------------
-const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // una sola vez
+const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // cargar una sola vez
 
 const uniq = (info) => `${Date.now()}-${info.workerIndex}-${info.retry}`;
+
+// normaliza el "name" para comparar prefijo con lo que Trello genera
 function trelloNormalizeSlug(s) {
   return String(s || '')
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')       // espacios -> guiones (tu prefijo)
+    .replace(/\s+/g, '-')       // espacios -> guiones (tu prefijo original)
     .replace(/[^a-z0-9-]/g, '') // solo permitidos
-    .replace(/-/g, '');         // Trello finalmente elimina guiones en "name"
+    .replace(/-/g, '');         // Trello elimina guiones en "name"
 }
 
 // ======================================================================
-// 1) TESTS BASE (casos del CSV usando auth por URL default, sin headers dinámicos)
+// ÚNICO SUITE: CSV × Headers/Auth parametrizado (Opción A)
+// - Válidos: corren con TODOS los HDR_CASES (incluyendo 'default')
+// - Inválidos: corren SOLO con 'default'
 // ======================================================================
-test.describe.parallel('Workspaces API — CSV (default auth por URL)', () => {
-  for (const row of rows) {
-    if (row.type === 'valid') {
-      test(`POST /workspaces ${row.caseId} — ${row.title}`, async ({ request }, testInfo) => {
-        const payload = buildValidFromRow(row, uniq(testInfo));
-        const r = await createWorkspace(request, payload); // default: key/token del .env en la URL
-
-        const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
-        await expectStatus(r, exp);
-
-        if (exp >= 200 && exp < 300) {
-          // Validaciones mínimas de OK
-          await expectBodyHasId(r);
-          const body = await r.json();
-          expect(body.displayName).toBe(payload.displayName);
-
-          const expectedPrefix = trelloNormalizeSlug(payload.name);
-          expect(body.name.startsWith(expectedPrefix)).toBe(true);
-
-          // GET
-          const g = await getWorkspace(request, body.id);
-          await expectStatusIn(g, [200]); // 200 OK esperado
-        }
-      });
-    }
-
-    if (row.type === 'invalid') {
-      test(
-        `POST /workspaces [INVALID] ${row.caseId || ''} ${row.reason ? `(${row.reason})` : ''}`.trim(),
-        async ({ request }, testInfo) => {
-          const payload = buildInvalidFromRow(row, uniq(testInfo));
-          const r = await createWorkspace(request, payload); // default auth
-          const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
-          await expectStatus(r, exp);
-        }
-      );
-    }
-  }
-});
-
-// ======================================================================
-// 2) TESTS CSV × Headers/Auth parametrizado (noAuth, noKey, badToken, default)
-// ======================================================================
-test.describe.parallel('Workspaces API — CSV × Headers/Auth parametrizado', () => {
+test.describe.parallel('Workspaces API — CSV × Headers/Auth parametrizado ', () => {
   if (!rows || rows.length === 0) {
     test('CSV vacío - placeholder', () => test.skip(true, 'No hay filas en el CSV'));
     return;
@@ -102,13 +59,15 @@ test.describe.parallel('Workspaces API — CSV × Headers/Auth parametrizado', (
 
   for (const hdrCase of HDR_CASES) {
     test.describe(`hdr=${hdrCase}`, () => {
+
+      // -------- VÁLIDOS × TODAS LAS VARIANTES DE AUTH --------
       for (const row of rows) {
-        if (row.type !== 'valid') continue; // autenticación se valida típicamente sobre casos válidos
+        if (row.type !== 'valid') continue;
 
         test(`POST /workspaces ${row.caseId} — ${row.title} (hdr=${hdrCase})`,
           async ({ request }, testInfo) => {
 
-            // headers “extra” (no auth) desde tu JSON; Trello usa auth por URL:
+            // headers “extra” (no auth). Trello usa auth por URL:
             const headers = materializeHeaders(hdrCase);
 
             // variantes de auth por URL
@@ -130,29 +89,48 @@ test.describe.parallel('Workspaces API — CSV × Headers/Auth parametrizado', (
 
             if (expected >= 200 && expected < 300) {
               await expectBodyHasId(r);
+
               const body = await r.json();
-
+              // displayName recibido = enviado
               expect(body.displayName).toBe(payload.displayName);
-              const expectedPrefix = trelloNormalizeSlug(payload.name);
-              expect(body.name.startsWith(expectedPrefix)).toBe(true);
 
-              // GET con las mismas variantes
+              // name generado debe empezar con el prefijo normalizado
+              const expectedPrefix = trelloNormalizeSlug(payload.name);
+              expect(
+                body.name.startsWith(expectedPrefix),
+                `El name '${body.name}' no inicia con '${expectedPrefix}'`
+              ).toBe(true);
+
+              // GET con mismas variantes de auth
               const g = await getWorkspace(request, body.id, { headers, auth: authOpts });
               await expectStatusIn(g, [200]);
             }
           }
         );
       }
+
+      // -------- INVÁLIDOS × SOLO DEFAULT --------
+      // (evita ruido de 401 por auth y enfoca validaciones de payload)
+      if (hdrCase === 'default') {
+        for (const row of rows) {
+          if (row.type !== 'invalid') continue;
+
+          test(
+            `POST /workspaces [INVALID] ${row.caseId || ''} ${row.reason ? `(${row.reason})` : ''}`.trim(),
+            async ({ request }, testInfo) => {
+              const payload = buildInvalidFromRow(row, uniq(testInfo));
+
+              const r = await createWorkspace(request, payload); // default auth por URL desde .env
+
+              const exp = Number.isFinite(Number(row.expectedStatus)) ? Number(row.expectedStatus) : 200;
+              await expectStatus(r, exp);
+            }
+          );
+        }
+      }
     });
   }
 });
 
-// ======================================================================
-// 3) Limpieza opcional por test (si creaste algo y quieres borrarlo sí o sí)
-//    *Puedes moverlo a un fixture; a continuación un ejemplo inline por claridad.
-// ======================================================================
-test.afterEach(async ({ request }, testInfo) => {
-  // Si guardas IDs creados en testInfo.attachments o en variables compartidas, elimínalos aquí.
-  // Ejemplo (pseudo): for(const id of createdIds.splice(0)) { await deleteWorkspace(request, id); }
-  // Como no estamos guardando los IDs globalmente en este snippet, omitimos la limpieza aquí.
-});
+// Limpieza post-test: si guardas IDs creados globalmente, elimínalos aquí o usa un fixture con scope:'test'.
+// test.afterEach(async ({ request }) => { ... });

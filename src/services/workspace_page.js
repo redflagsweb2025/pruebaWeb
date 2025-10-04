@@ -1,44 +1,32 @@
 // src/services/workspace_page.js
-// src/services/workspace_page.js
 require('dotenv').config();
 
-const RAW_BASE  = process.env.API_BASE_URL || process.env.BASE_URL || 'https://api.trello.com';
-const BASE_URL  = RAW_BASE.replace(/\/+$/, '');
-const API_KEY   = process.env.API_KEY   || '';
+const RAW_BASE = process.env.API_BASE_URL || process.env.BASE_URL || 'https://api.trello.com';
+const BASE_URL = RAW_BASE.replace(/\/+$/, '');
+const API_KEY = process.env.API_KEY || '';
 const API_TOKEN = process.env.API_TOKEN || '';
 
-/** Construye key/token en la URL según el caso de autenticación */
-function authQS({
-  includeKey = true,
-  includeToken = true,
-  key   = API_KEY,
-  token = API_TOKEN
-} = {}) {
+// ================== helpers internos ==================
+function authQS({ includeKey = true, includeToken = true, key = API_KEY, token = API_TOKEN } = {}) {
   const parts = [];
-  if (includeKey)   parts.push(`key=${encodeURIComponent(key)}`);
+  if (includeKey) parts.push(`key=${encodeURIComponent(key)}`);
   if (includeToken) parts.push(`token=${encodeURIComponent(token)}`);
   return parts.join('&');
 }
 
-/** Quita cabeceras de auth (Trello usa auth por URL) */
 function sanitizeHeadersForUrlAuth(hdrs = {}) {
   const out = { ...(hdrs || {}) };
   delete out.Authorization;
-  delete out.authorization;
+  delete out['authorization'];
   delete out['X-API-Key'];
   delete out['x-api-key'];
   return out;
 }
 
-/**
- * Crea un workspace (organization)
- * @param {APIRequestContext} request - fixture de Playwright
- * @param {{displayName?: string, name?: string, desc?: string}} payload
- * @param {{ headers?: object, auth?: { includeKey?: boolean, includeToken?: boolean, key?: string, token?: string } }} options
- */
+// ================== CREATE (con opciones) ==================
 async function createWorkspace(request, payload, options = {}) {
   const { headers = {}, auth = {} } = options;
-  const qs  = authQS(auth);
+  const qs = authQS(auth);
   const url = `${BASE_URL}/1/organizations${qs ? `?${qs}` : ''}`;
 
   const data = {
@@ -48,7 +36,11 @@ async function createWorkspace(request, payload, options = {}) {
   };
 
   const finalHeaders = sanitizeHeadersForUrlAuth(headers);
-  if (!finalHeaders['Content-Type']) finalHeaders['Content-Type'] = 'application/json';
+  if (!finalHeaders['Content-Type'])
+    finalHeaders['Content-Type'] = 'application/json';
+
+  // 📘 Logging opcional (ayuda a depurar el teardown)
+  console.log(`[CREATE] ${payload.displayName} → URL: ${url}`);
 
   return request.post(url, {
     headers: finalHeaders,
@@ -56,30 +48,32 @@ async function createWorkspace(request, payload, options = {}) {
   });
 }
 
-/**
- * Obtiene un workspace por id o slug
- */
-async function getWorkspace(request, idOrSlug, options = {}) {
-  const { headers = {}, auth = {} } = options;
-  const qs  = authQS(auth);
-  const url = `${BASE_URL}/1/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
-  return request.get(url, { headers: sanitizeHeadersForUrlAuth(headers) });
-}
-
-/**
- * Elimina un workspace por id o slug
- */
+// ================== DELETE (sin cambios) ==================
 async function deleteWorkspace(request, idOrSlug, options = {}) {
   const { headers = {}, auth = {} } = options;
-  const qs  = authQS(auth);
+  const qs = authQS(auth);
   const url = `${BASE_URL}/1/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
-  return request.delete(url, { headers: sanitizeHeadersForUrlAuth(headers) });
+
+  const finalHeaders = sanitizeHeadersForUrlAuth(headers);
+  console.log(`[DELETE] ${idOrSlug} → URL: ${url}`);
+  return request.delete(url, { headers: finalHeaders });
 }
 
+// ================== GET (igual) ==================
+async function getWorkspace(request, idOrSlug, options = {}) {
+  const { headers = {}, auth = {} } = options;
+  const qs = authQS(auth);
+  const url = `${BASE_URL}/1/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
+
+  const finalHeaders = sanitizeHeadersForUrlAuth(headers);
+  return request.get(url, { headers: finalHeaders });
+}
+
+// ================== EXPORTS ==================
 module.exports = {
   createWorkspace,
-  getWorkspace,
   deleteWorkspace,
+  getWorkspace,
   authQS,
   sanitizeHeadersForUrlAuth
 };

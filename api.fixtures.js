@@ -1,34 +1,34 @@
-const { test, expect } = require('@playwright/test');
-const { createWorkspace, deleteWorkspace } = require('../../../src/services/workspace_page');
+// fixtures/cleanup.fixture.js
+const { test: base, expect } = require('@playwright/test');
+const { deleteWorkspace } = require('../../src/services/workspace_page');
 
-let createdIds = [];
+const test = base.extend({
+  // Guarda IDs creados por el test y los borra al final
+  cleaner: async ({ request }, use, testInfo) => {
+    const created = new Set();
 
-test.afterEach(async ({ request }) => {
-  for (const id of createdIds.splice(0)) {
-    try {
-      const resDel = await deleteWorkspace(request, id);
-      console.log(`DELETE ${id} → ${resDel.status()}`);
-    } catch (err) {
-      console.warn(`Fallo al eliminar workspace ${id}`, err);
+    // API para el test: registrar IDs
+    const track = (id) => { if (id) created.add(id); };
+
+    await use(track);
+
+    // Teardown
+    for (const id of created) {
+      try {
+        const resDel = await deleteWorkspace(request, id);
+        const code = resDel.status();
+        const msg = `[TEARDOWN] ${testInfo.title} → DELETE ${id} → ${code}`;
+        if (code === 200 || code === 204) {
+          console.log('\x1b[32m%s\x1b[0m', msg);
+        } else {
+          console.warn('\x1b[33m%s\x1b[0m', msg);
+          try { console.warn('Body:', (await resDel.text()).slice(0, 200)); } catch {}
+        }
+      } catch (e) {
+        console.error(`[TEARDOWN ERROR] ${testInfo.title} → ${id}`, e);
+      }
     }
-  }
+  },
 });
 
-test('POST /workspaces válido', async ({ request }) => {
-  const payload = { displayName: 'WS DEMO', name: `ws-${Date.now()}` };
-  const res = await createWorkspace(request, payload);
-  expect(res.status()).toBe(200);
-
-  const body = await res.json();
-  expect(body.displayName).toBe(payload.displayName);
-
-  // Guardar id para cleanup en afterEach
-  createdIds.push(body.id);
-});
-
-test('POST /workspaces inválido', async ({ request }) => {
-  const payload = { name: '' }; // inválido
-  const res = await createWorkspace(request, payload);
-  expect(res.status()).toBe(400);
-  // no guardo id porque no se creó nada
-});
+module.exports = { test, expect };
