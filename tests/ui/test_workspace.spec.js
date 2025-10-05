@@ -1,4 +1,3 @@
-tests/workspace.spec.js
 const { test, expect } = require('@playwright/test');
 const {WorkspacePage} = require('../../page/API/workspace_page');
 

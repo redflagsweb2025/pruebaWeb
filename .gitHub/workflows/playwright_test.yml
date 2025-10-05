@@ -1,0 +1,47 @@
+# .github/workflows/playwright_tests.yml
+
+# 1. Nombre del Workflow
+name: Playwright E2E Tests
+
+# 2. Eventos que disparan el workflow
+on:
+  push:
+    branches: [ development ] # Ejecutar cuando se sube código a 'development'
+  pull_request:
+    branches: [ development ] # Ejecutar cuando se abre un PR a 'development'
+  workflow_dispatch: # Permite ejecutar manualmente desde la interfaz de GitHub
+
+# 3. Trabajos (Jobs) a ejecutar
+jobs:
+  # Define un trabajo llamado 'test'
+  test:
+    # 4. Entorno de ejecución (usaremos una máquina Ubuntu)
+    runs-on: ubuntu-latest
+
+    # 5. Pasos del trabajo
+    steps:
+    
+    # Paso 5a: Descarga el código del repositorio
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Paso 5b: Configura Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20 # Usa la versión de Node.js de tu proyecto
+        
+    # Paso 5c: Instala dependencias y Playwright (Chrome, Firefox, WebKit)
+    - name: Install dependencies and Playwright
+      run: |
+        npm install
+        npx playwright install --with-deps
+
+
+    # Paso 5d: ¡Ejecuta las pruebas inyectando los Secrets!
+    - name: Run Playwright tests
+      run: npx playwright test
+      env: # Usamos la sección 'env' para inyectar variables
+        API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        API_KEY: ${{ secrets.API_KEY }}
+        API_TOKEN: ${{ secrets.API_TOKEN }}
