@@ -1,6 +1,6 @@
 // En tu archivo de test
 const { test } = require('@playwright/test');
-const WorkspaceAssertion = require('./src/assertion/ui/workspace/workspace.assertion');
+const WorkspaceAssertion = require('../../src/assertions/ui/workspace..assert');
 
 test('Verificar UI del workspace de Trello', async ({ page }) => {
     // Navegar al workspace
