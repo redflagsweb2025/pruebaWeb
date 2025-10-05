@@ -12,8 +12,8 @@ const HDR_CASES = {
 };
 
 function materializeAuthParams(hdrCase = HDR_CASES.default) {
-  const key = process.env.API_KEY || '';
-  const token = process.env.API_TOKEN || '';
+  const key = process.env.TRELLO_KEY || '';
+  const token = process.env.TRELLO_TOKEN || '';
 
   const params = new URLSearchParams();
 

@@ -3,8 +3,8 @@ require('dotenv').config();
 const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
 const RAW_BASE = process.env.API_BASE || 'https://api.trello.com/1';
 const BASE_URL = RAW_BASE.replace(/\/+$/, '');
-const API_KEY = process.env.API_KEY || '';
-const API_TOKEN = process.env.API_TOKEN || '';
+const API_KEY = process.env.TRELLO_KEY || '';
+const API_TOKEN = process.env.TRELLO_TOKEN || '';
 
 // ================== helpers internos ==================
 function authQS({ includeKey = true, includeToken = true, key = API_KEY, token = API_TOKEN } = {}) {
