@@ -16,7 +16,8 @@
 /allure-results
 =======
 /test-results/.last-run.json
->>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0
+/allure-report
+/allure-results>>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0
 =======
 # Dependencias de Node (Playwright, etc.)
 node_modules/

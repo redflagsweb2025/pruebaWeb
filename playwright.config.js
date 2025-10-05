@@ -3,7 +3,7 @@ const { defineConfig, devices } = require('@playwright/test');
 require('dotenv').config();
 
 module.exports = defineConfig({
-  testDir: './tests/api/workspace',                 // o './test' según tu carpeta
+  testDir: './tests',                 // o './test' según tu carpeta
   reporter: [['html'], ['list']],
   use: {
     baseURL: process.env.BASE_URL || 'https://trello.com',
