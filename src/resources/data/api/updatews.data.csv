@@ -1,0 +1,6 @@
+caseId,title,hdrCase,orgId,displayName,name,desc,website,expectedStatus,reason,marker
+WS-API-PUT-001,"Actualizar displayName/desc/website con datos válidos","default","{{WORKSPACE_ID}}","WS editado",,"Descripción actualizada","https://example.com",200,,"smoke integration"
+WS-API-PUT-002,"Actualizar sin token","noToken","{{WORKSPACE_ID}}","WS editado",,"Desc sin token","https://example.com",401,"sin token","integration"
+WS-API-PUT-003,"Actualizar con token inválido/expirado","badToken","{{WORKSPACE_ID}}","WS editado",,"Desc bad token","https://example.com",401,"token inválido","integration"
+WS-API-PUT-004,"Actualizar con website inválido (no-URL)","default","{{WORKSPACE_ID}}",,,"Desc url inválida","no-es-una-url",200,"website inválido","integration"
+WS-API-PUT-005,"Actualizar con usuario sin permiso (sin API_KEY)","noKey","{{WORKSPACE_ID}}","Intento sin key",,,"https://example.com",401,"sin api_key","integration"

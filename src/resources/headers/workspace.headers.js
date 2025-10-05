@@ -10,8 +10,8 @@ const HDR_CASES = Object.keys(matrix); // ["default","noAuth","noKey","badToken"
 //funcion crea headers y llama al json y reemeplaza los datos segun el campo del json
 function materializeHeaders(hdrCase) {
   const tpl = matrix[hdrCase] || {};
-  const API_KEY   = process.env.API_KEY   || '';
-  const API_TOKEN = process.env.API_TOKEN || '';
+  const API_KEY   = process.env.TRELLO_KEY   || '';
+  const API_TOKEN = process.env.TRELLO_TOKEN || '';
   const out = {};
   for (const [k, v] of Object.entries(tpl)) {
     out[k] = typeof v === 'string'
@@ -32,3 +32,6 @@ function expectedStatusFor(row, hdrCase) {
 }
 
 module.exports = { HDR_CASES, materializeHeaders, expectedStatusFor };
+
+
+

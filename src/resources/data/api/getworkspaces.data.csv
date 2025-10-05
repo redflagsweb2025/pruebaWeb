@@ -1,0 +1,6 @@
+caseId,title,hdrCase,orgId,expectedStatus,reason,marker
+WS-API-GET-001,"Obtener workspace existente por {orgId}","default",{{ORG_ID_VALIDO}},200,,"smoke integration"
+WS-API-GET-002,"Obtener sin token","noToken",{{ORG_ID_VALIDO}},401,"falta token","integration"
+WS-API-GET-003,"Obtener con {orgId} inexistente","default",orgnoexistexyz123,404,"no encontrado","integration"
+WS-API-APIRG-GET-004,"Llamar sin {orgId} en la ruta (endpoint incorrecto)","default","",404,"ruta inválida","integration"
+WS-API-GET-005,"Obtener un workspace que no existe","default",orginexistente99999,404,"no existe","integration"
