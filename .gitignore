@@ -10,3 +10,5 @@
 /node_modules/
 /playwright-report/index.html
 /test-results/.last-run.json
+/allure-report
+/allure-results
