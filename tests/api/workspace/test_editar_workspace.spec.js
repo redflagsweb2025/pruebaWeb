@@ -1,15 +1,19 @@
 
 const { test2, expect } = require('../../../fixtures/ws.fixtures');
+const { allure } = require('allure-playwright');
 
 const { loadCsv } = require('../../../src/utils/api/csv');
 const { HDR_CASES } = require('../../../src/resources/headers/workspacesheaderssinjson');
 const { updateWorkspacefix, getWorkspaces } = require('../../../src/services/workspace_page');
 const { expectStatus } = require('../../../src/assertions/api/workspace.assert');
-const { validateErrorByKind ,resolveOrgId} = require('../../../src/utils/api/workspace.helpers');
+const { validateErrorByKind, resolveOrgId,attach ,applyAllureMeta} = require('../../../src/utils/api/workspace.helpers');
 
-
+// Cargar CSV una sola vez
 const rows = loadCsv('src/resources/data/api/updatews.data.csv');
 
+
+
+// Iteración de casos desde el CSV
 for (const row of rows) {
   const {
     caseId,
@@ -25,7 +29,7 @@ for (const row of rows) {
     marker,
   } = row;
 
-  // soporta múltiples marcadores: "smoke integracion" o "smoke,integracion"
+  // Tags @smoke / @integration
   const markers = String(marker || '')
     .split(/[,\s]+/)
     .map(m => m.trim())
@@ -35,52 +39,85 @@ for (const row of rows) {
   test2(
     `[PUT] ${caseId}: ${title}${reason ? ` (${reason})` : ''} (hdr=${hdrCase})${tag}`,
     async ({ request, workspace }) => {
+      applyAllureMeta(row, { hdrCase, method: 'PUT', resource: 'Workspace' });
+
+
       const exp = Number(expectedStatus);
 
-      // Para 200 usa SIEMPRE el id del fixture
+      // Resolver el ID correcto
       let idToUse = resolveOrgId(orgId, workspace);
       if (exp === 200) {
         if (!workspace?.id) throw new Error('No hay ID del workspace del fixture.');
         idToUse = workspace.id;
       }
 
-      // Ejecutar PUT
-      const res = await updateWorkspacefix(request, {
+      const payload = {
         idOrName: idToUse,
         displayName: displayName || undefined,
         name: name || undefined,
         desc: desc || undefined,
-        website: website || undefined, // pasa website si viene en CSV
+        website: website || undefined,
         hdrCase,
+      };
+
+      await allure.step('PREP: Construir payload y contexto', async () => {
+        attach('Payload (request)', payload);
+        attach('Workspace Fixture', workspace);
       });
 
-      await expectStatus(res, exp);
+      // ---------- PUT ----------
+      const res = await allure.step('PUT /workspace — actualizar', async () => {
+        const response = await updateWorkspacefix(request, payload);
+        attach('Response Status (PUT)', { status: response.status() });
+        attach('Response Headers (PUT)', response.headers());
+        attach('Response Body (PUT)', await response.text(), 'application/json');
+        return response;
+      });
+
+      await allure.step('VALIDATE: Status esperado', async () => {
+        await expectStatus(res, exp);
+      });
 
       if (exp === 200) {
-        // GET para verificar que se guardó lo editable
-        const resGet = await getWorkspaces(request, {
-          idOrName: idToUse,
-          hdrCase: HDR_CASES.default,
+        // ---------- GET ----------
+        const resGet = await allure.step('GET /workspace/:id — verificar actualización', async () => {
+          const g = await getWorkspaces(request, {
+            idOrName: idToUse,
+            hdrCase: HDR_CASES.default,
+          });
+          attach('Response Status (GET)', { status: g.status() });
+          attach('Response Body (GET)', await g.text(), 'application/json');
+          return g;
         });
-        await expectStatus(resGet, 200);
+
+        await allure.step('VALIDATE: Status GET', async () => {
+          await expectStatus(resGet, 200);
+        });
+
         const body = await resGet.json();
 
-        if (displayName) expect(String(body.displayName)).toBe(String(displayName));
-        if (name) {
-          // Trello normaliza el slug; validamos contenga el “name” saneado
-          expect(String(body.name))
-            .toContain(String(name).replace(/[^a-z0-9-]/gi, '').toLowerCase());
-        }
-        if (desc) expect(String(body.desc || '')).toBe(String(desc));
+        await allure.step('VALIDATE: Campos actualizados', async () => {
+          if (displayName) {
+            expect(String(body.displayName)).toBe(String(displayName));
+          }
+          if (name) {
+            expect(String(body.name)).toContain(
+              String(name).replace(/[^a-z0-9-]/gi, '').toLowerCase()
+            );
+          }
+          if (desc) expect(String(body.desc || '')).toBe(String(desc));
+          // Si tu API devuelve website, puedes validar aquí:
+          // if (website) expect(String(body.website || '')).toBe(String(website));
+          attach('Body final (GET)', body);
+        });
 
-        // Nota: Trello no siempre devuelve 'website' en este endpoint;
-        // si tu API lo expone, puedes validar aquí:
-        // if (website) expect(String(body.website || '')).toBe(String(website));
       } else {
-        await validateErrorByKind(res, reason, {
-          token: process.env.TRELLO_TOKEN || process.env.API_TOKEN,
-          key: process.env.TRELLO_KEY || process.env.API_KEY,
-          maxMs: 2500,
+        await allure.step('VALIDATE: Error esperado', async () => {
+          await validateErrorByKind(res, reason, {
+            token: process.env.TRELLO_TOKEN || process.env.API_TOKEN,
+            key: process.env.TRELLO_KEY || process.env.API_KEY,
+            maxMs: 2500,
+          });
         });
       }
     }

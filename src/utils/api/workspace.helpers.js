@@ -12,6 +12,24 @@ const {
   assertCommonError,
 } = require('../../../src/assertions/api/workspace.assert');
 
+// --- Allure safe wrapper (no-op si no está disponible) ---
+let allureReal;
+try { ({ allure: allureReal } = require('allure-playwright')); } catch { allureReal = null; }
+const allureSafe = {
+  attachment: (...a) => allureReal?.attachment?.(...a),
+  label:      (...a) => allureReal?.label?.(...a),
+  epic:       (...a) => allureReal?.epic?.(...a),
+  feature:    (...a) => allureReal?.feature?.(...a),
+  story:      (...a) => allureReal?.story?.(...a),
+  severity:   (...a) => allureReal?.severity?.(...a),
+  tag:        (...a) => allureReal?.tag?.(...a),
+  owner:      (...a) => allureReal?.owner?.(...a),
+  descriptionHtml: (...a) => allureReal?.descriptionHtml?.(...a),
+  step: async (t, fn) => allureReal?.step ? allureReal.step(t, fn) : (typeof fn === 'function' ? fn() : undefined),
+};
+
+
+
 // const { trelloNormalizeSlug } = require('../../src/utils/slug');
 
 function trelloNormalizeSlug(s) {
@@ -200,6 +218,107 @@ async function validateErrorByKind(res, reason, { token, key, maxMs = 2000 } = {
   return s;
 }
 
+function tagsFrom(marker) {
+  const markers = String(marker || '')
+    .split(/[,\s]+/)
+    .map(m => m.trim())
+    .filter(Boolean);
+  return markers.length ? ' ' + markers.map(m => `@${m}`).join(' ') : '';
+}
+
+// --- util: adjuntar seguro ---
+function attach(name, data, mime = 'application/json') {
+  try {
+    const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    allureSafe.attachment(name, text, mime);
+  } catch {
+    allureSafe.attachment(name, String(data), 'text/plain');
+  }
+}
+
+// --- util: nombre de feature por método + recurso (fallbacks) ---
+function featureFrom(method, resource = 'Workspace') {
+  const m = String(method || '').toUpperCase();
+  const base = String(resource || 'Workspace').trim();
+  if (m === 'POST') return `Create ${base}`;
+  if (m === 'GET')  return `Get ${base}`;
+  if (m === 'PUT' || m === 'PATCH') return `Update ${base}`;
+  if (m === 'DELETE') return `Delete ${base}`;
+  return `${m || 'OP'} ${base}`;
+}
+
+/**
+ * ✅ META reusable para Allure en cualquier endpoint.
+ * @param {object} row              Fila del CSV (title, caseId, marker, severity, expectedStatus, type, etc.)
+ * @param {object} opts
+ * @param {string} opts.hdrCase     Variante de headers/auth (p.ej. default, noKey, badToken)
+ * @param {string} opts.method      HTTP method ('GET'|'POST'|'PUT'|'DELETE'|...)
+ * @param {string} [opts.resource]  Recurso lógico (p.ej. 'Workspace', 'List', 'Board')
+ * @param {string} [opts.epic]      Epic explícito (default: 'Trello Workspaces')
+ * @param {string} [opts.feature]   Feature explícita (si no, se infiere con featureFrom)
+ * @param {string} [opts.owner]     Owner por override (si no, usa env ALLURE_OWNER)
+ */
+function applyAllureMeta(row, {
+  hdrCase,
+  method,
+  resource = 'Workspace',
+  epic = 'Trello Workspaces',
+  feature,
+  owner,
+} = {}) {
+  // Jerarquía
+  allureSafe.epic(epic);
+  allureSafe.feature(feature || featureFrom(method, resource));
+  allureSafe.story(`${row?.caseId || 'N/A'} — ${row?.title || 'Sin título'}`);
+
+  // Etiquetas
+  allureSafe.label('layer', 'API');
+  allureSafe.label('component', resource);
+  if (hdrCase) allureSafe.label('hdrCase', String(hdrCase));
+  if (method)  allureSafe.label('httpMethod', String(method).toUpperCase());
+
+  // Severidad (prioridad: row.severity → expectedStatus → row.type)
+  const exp = Number(row?.expectedStatus);
+  const sevCsv = String(row?.severity || '').toLowerCase();
+  let sev = 'normal';
+  if (['blocker','critical','normal','minor','trivial'].includes(sevCsv)) {
+    sev = sevCsv;
+  } else if (Number.isFinite(exp)) {
+    sev = exp === 200 ? 'critical' : 'normal';
+  } else if (row?.type) {
+    sev = row.type === 'valid' ? 'critical' : 'normal';
+  }
+  allureSafe.severity(sev);
+
+  // Tags (para filtros en Allure UI)
+  String(row?.marker || '')
+    .split(/[,\s]+/)
+    .filter(Boolean)
+    .forEach(m => allureSafe.tag(m));
+
+  // Owner
+  const finalOwner = owner || process.env.ALLURE_OWNER;
+  if (finalOwner) allureSafe.owner(finalOwner);
+
+  // Metadata útil como attachment
+  attach('Case Meta', {
+    method: String(method || '').toUpperCase(),
+    resource,
+    epic,
+    feature: feature || featureFrom(method, resource),
+    title: row?.title,
+    caseId: row?.caseId,
+    type: row?.type,
+    hdrCase,
+    expectedStatus: row?.expectedStatus,
+    severity: sev,
+    markers: row?.marker,
+  });
+}
+
+
+
+
 module.exports = {
   trelloNormalizeSlug,
   validateCreateWorkspaceResponse,
@@ -208,4 +327,9 @@ module.exports = {
   validateErrorByKind,
   resolveOrgId,
   resolveOrgIdFromPlaceholders,
+  tagsFrom,
+  attach,
+  applyAllureMeta,
+  allureSafe,
+  featureFrom ,
 };
