@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-const { defineConfig } = require('@playwright/test');
-require('dotenv').config();
-
-module.exports = defineConfig({
-  testDir: './tests',
-  reporter: [['list'], ['html'],['allure-playwright']],
-  use: {
-    baseURL: process.env.API_BASE || 'https://api.trello.com/1',
-    headless: true,
-  },
-  timeout: 30 * 1000,
-  retries: 0,
-=======
 // playwright.config.js (CJS)
 const { defineConfig, devices } = require('@playwright/test');
 require('dotenv').config();
@@ -32,5 +18,4 @@ module.exports = defineConfig({
     //storageState: 'auth/trello.json'  // sesión guardada (ver paso 3)
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
->>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0
 });
