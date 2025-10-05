@@ -2,17 +2,17 @@ const { test, expect } = require('@playwright/test');
 
 // services (refactor: una sola firma con options)
 const { createWorkspace, getWorkspace } =
-  require('../../../src/services/workspace_page');
+  require('../../src/services/workspace_page');
 
 // utils
-const { loadCsv } = require('../../../src/utils/api/csv');
+const { loadCsv } = require('../../src/utils/api/csv');
 
 // headers/auth (variantes de auth y headers “extra”)
 const {
   HDR_CASES,
   materializeHeaders,   // headers no relacionados a auth (User-Agent, Correlation-Id, etc.)
   expectedStatusFor     // status esperado según fila × hdrCase
-} = require('../../../src/resources/headers/workspace.headers');
+} = require('../../src/resources/headers/workspace.headers');
 
 // builders
 const {buildValidFromRow , buildInvalidFromRow } = require('../../../src/resources/payloads/workspace.payloads');
@@ -29,7 +29,7 @@ const {
   expectLatencyMs,
   expectBodyHasId,
   expectSchema
-} = require('../../../src/assertions/api/workspace.assert');
+} = require('../../src/assertions/api/workspace.assert');
 
 // ----------------- helpers locales -----------------
 const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // cargar una sola vez
