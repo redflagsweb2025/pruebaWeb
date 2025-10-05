@@ -37,6 +37,11 @@ jobs:
         npm install
         npx playwright install --with-deps
 
-    # Paso 5d: ¡Ejecuta las pruebas!
+
+    # Paso 5d: ¡Ejecuta las pruebas inyectando los Secrets!
     - name: Run Playwright tests
       run: npx playwright test
+      env: # Usamos la sección 'env' para inyectar variables
+        API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        API_KEY: ${{ secrets.API_KEY }}
+        API_TOKEN: ${{ secrets.API_TOKEN }}
