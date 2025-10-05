@@ -17,3 +17,5 @@ Ejecutar pruebas
 npm test
 # o con navegador visible
 npm run test:headed
+
+npm install ajv-formats
