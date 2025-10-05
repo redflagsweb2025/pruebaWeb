@@ -1,0 +1,6 @@
+caseId,title,hdrCase,orgId,expectedStatus,reason,marker
+WS-API-DEL-001,"Eliminar workspace existente (éxito; luego GET→404)","default","{{WORKSPACE_ID}}",200,,"smoke integration"
+WS-API-DEL-002,"Eliminar sin token","noToken","{{WORKSPACE_ID}}",401,"sin token","integration"
+WS-API-DEL-003,"Eliminar con token inválido/expirado","badToken","{{WORKSPACE_ID}}",401,"token inválido","integration"
+WS-API-DEL-004,"Eliminar sin api_key","noKey","{{WORKSPACE_ID}}",401,"sin api_key","integration"
+WS-API-DEL-005,"Eliminar {orgId} inexistente o doble delete","default","ffffffffffffffffffffffff",404,"no existe","integration"

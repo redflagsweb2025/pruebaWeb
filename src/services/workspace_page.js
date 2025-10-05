@@ -1,7 +1,7 @@
 // src/services/workspace_page.js
 require('dotenv').config();
-
-const RAW_BASE = process.env.API_BASE_URL || process.env.BASE_URL || 'https://api.trello.com';
+const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
+const RAW_BASE = process.env.API_BASE || 'https://api.trello.com/1';
 const BASE_URL = RAW_BASE.replace(/\/+$/, '');
 const API_KEY = process.env.API_KEY || '';
 const API_TOKEN = process.env.API_TOKEN || '';
@@ -27,7 +27,7 @@ function sanitizeHeadersForUrlAuth(hdrs = {}) {
 async function createWorkspace(request, payload, options = {}) {
   const { headers = {}, auth = {} } = options;
   const qs = authQS(auth);
-  const url = `${BASE_URL}/1/organizations${qs ? `?${qs}` : ''}`;
+  const url = `${BASE_URL}/organizations${qs ? `?${qs}` : ''}`;
 
   const data = {
     displayName: payload.displayName,
@@ -52,7 +52,7 @@ async function createWorkspace(request, payload, options = {}) {
 async function deleteWorkspace(request, idOrSlug, options = {}) {
   const { headers = {}, auth = {} } = options;
   const qs = authQS(auth);
-  const url = `${BASE_URL}/1/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
+  const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
 
   const finalHeaders = sanitizeHeadersForUrlAuth(headers);
   console.log(`[DELETE] ${idOrSlug} → URL: ${url}`);
@@ -63,17 +63,85 @@ async function deleteWorkspace(request, idOrSlug, options = {}) {
 async function getWorkspace(request, idOrSlug, options = {}) {
   const { headers = {}, auth = {} } = options;
   const qs = authQS(auth);
-  const url = `${BASE_URL}/1/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
+  const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrSlug)}${qs ? `?${qs}` : ''}`;
 
   const finalHeaders = sanitizeHeadersForUrlAuth(headers);
   return request.get(url, { headers: finalHeaders });
 }
 
 // ================== EXPORTS ==================
+
+
+async function getWorkspaces(request, { idOrName, hdrCase = 'default' } = {}) {
+  const qp = materializeAuthParams(hdrCase);
+
+  // endpoint válido requiere orgId en la ruta
+  const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrName)}?${qp.toString()}`;
+  return await request.get(url);
+}
+
+
+
+/**
+ * GET incorrecto (sin {orgId} en la ruta) -> /organizations
+ * Para el caso WS-API-APIRG-GET-004
+ */
+async function getWorkspaceWithoutId(request, { hdrCase = 'default' } = {}) {
+  const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
+  const BASE = process.env.TRELLO_BASE || process.env.API_BASE || 'https://api.trello.com/1';
+  const qp = materializeAuthParams(hdrCase);
+  // endpoint mal escrito a propósito (singular) para forzar 404
+  const url = `${BASE}/organization?${qp.toString()}`;
+  return await request.get(url);
+}
+
+
+async function createWorkspacefix(request, { displayName, name, desc = '', hdrCase = 'default' } = {}) {
+  const qp = materializeAuthParams(hdrCase);
+  const url = `${BASE_URL}/organizations?${qp.toString()}`;
+  // Trello acepta campos como x-www-form-urlencoded o query; usamos form:
+  return await request.post(url, {
+    form: { displayName, name, desc },
+  });
+}
+
+// ---------- DELETE ----------
+async function deleteWorkspacefix(request, { idOrName, hdrCase = 'default' } = {}) {
+  const qp = materializeAuthParams(hdrCase);
+  const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrName)}?${qp.toString()}`;
+  return await request.delete(url);
+}
+
+// ---------- UPDATE (PUT) ----------
+async function updateWorkspacefix(
+  request,
+  { idOrName, displayName, name, desc, website, hdrCase = 'default' } = {}
+) {
+  const qp = materializeAuthParams(hdrCase);
+  const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrName)}?${qp.toString()}`;
+
+  // Solo manda campos presentes (evita ReferenceError y sobreescrituras con "undefined")
+  const form = {};
+  if (displayName !== undefined) form.displayName = displayName;
+  if (name !== undefined)        form.name        = name;
+  if (desc !== undefined)        form.desc        = desc;
+  if (website !== undefined)     form.website     = website;
+
+  return await request.put(url, { form });
+}
+
+
+
+
 module.exports = {
   createWorkspace,
   deleteWorkspace,
   getWorkspace,
   authQS,
-  sanitizeHeadersForUrlAuth
+  sanitizeHeadersForUrlAuth,
+  getWorkspaces,
+  getWorkspaceWithoutId,
+  createWorkspacefix,
+  deleteWorkspacefix,
+  updateWorkspacefix,
 };

@@ -1,47 +1,46 @@
-// ✅ Usa el fixture con teardown individual por test
-const { test } = require('../../../api.fixtures');
 
-// services (API Trello refactor)
-const { createWorkspace, getWorkspace /*, deleteWorkspace*/ } =
+const { test } = require('../../../fixtures/ws.fixtures');
+
+const { createWorkspace, getWorkspace  } =
   require('../../../src/services/workspace_page');
 
-// utils
 const { loadCsv } = require('../../../src/utils/api/csv');
 
-// headers/auth (variantes de auth y headers “extra”)
 const { HDR_CASES, materializeHeaders, expectedStatusFor } =
   require('../../../src/resources/headers/workspace.headers');
 
-// builders
 const { buildValidFromRow, buildInvalidFromRow } =
   require('../../../src/resources/payloads/workspace/workspace.payloads');
 
-// asserts usados aquí
 const { expectStatus, expectStatusIn } =
   require('../../../src/assertions/api/workspace.assert');
 
-// helpers (éxito + errores)
 const {
   validateCreateWorkspaceResponse,
-  validateErrorByKind, // <-- asegúrate que lo exporte tu workspace.helpers.js
+  validateErrorByKind,
 } = require('../../../src/utils/api/workspace.helpers');
 
-// ----------------- helpers locales -----------------
+
 const rows = loadCsv('src/resources/data/api/workspace.data.csv'); // cargar una sola vez
 const uniq = (info) => `${Date.now()}-${info.workerIndex}-${info.retry}`;
-const BAD_TOKEN = process.env.BAD_TOKEN;
+const BAD_TOKEN = 'BAD_TOKEN';
 
-// (opcional) esquema si lo tienes
+
 let schemaCreate;
 try {
   schemaCreate = require('../../../src/resources/schemas/workspace.schemaresp.json');
 } catch { /* sin esquema */ }
 
-// ======================================================================
-// ÚNICO SUITE: CSV × Headers/Auth parametrizado
-// - Válidos: corren con TODOS los HDR_CASES (incluyendo 'default')
-// - Inválidos: corren SOLO con 'default'
-// ======================================================================
+/** Convierte "smoke integracion" o "smoke,integracion" -> " @smoke @integracion" */
+function tagsFrom(marker) {
+  const markers = String(marker || '')
+    .split(/[,\s]+/)
+    .map(m => m.trim())
+    .filter(Boolean);
+  return markers.length ? ' ' + markers.map(m => `@${m}`).join(' ') : '';
+}
+
+
 test.describe.parallel('Crear Workspaces API ', () => {
   if (!rows || rows.length === 0) {
     test('CSV vacío - placeholder', () => test.skip(true, 'No hay filas en el CSV'));
@@ -55,8 +54,10 @@ test.describe.parallel('Crear Workspaces API ', () => {
       for (const row of rows) {
         if (row.type !== 'valid') continue;
 
+        const tag = tagsFrom(row.marker);
+
         test(
-          `Crear workspaces ${row.caseId} — ${row.title} (hdr=${hdrCase})`,
+          `Crear workspaces ${row.caseId} — ${row.title} (hdr=${hdrCase})${tag}`,
           async ({ request, cleaner }, testInfo) => {
 
             // headers “extra” (no auth). Trello usa auth por URL:
@@ -67,7 +68,7 @@ test.describe.parallel('Crear Workspaces API ', () => {
               hdrCase === 'noAuth'   ? { includeToken: false } :
               hdrCase === 'noKey'    ? { includeKey:   false } :
               hdrCase === 'badToken' ? { token: BAD_TOKEN } :
-              {}; // default
+              {};
 
             const payload  = buildValidFromRow(row, uniq(testInfo));
             const expected = expectedStatusFor(row, hdrCase);
@@ -81,7 +82,7 @@ test.describe.parallel('Crear Workspaces API ', () => {
             const errorKind =
               hdrCase === 'noKey'   ? 'NO_KEY'
             : hdrCase === 'noAuth'  ? 'NO_TOKEN'
-            : hdrCase === 'badToken'? 'GENERIC' // crea un assert específico cuando tengas el body exacto
+            : hdrCase === 'badToken'? 'GENERIC'
             : 'GENERIC';
 
             if (expected >= 200 && expected < 300) {
@@ -111,8 +112,10 @@ test.describe.parallel('Crear Workspaces API ', () => {
         for (const row of rows) {
           if (row.type !== 'invalid') continue;
 
+          const tagInv = tagsFrom(row.marker);
+
           test(
-            `POST /workspaces [INVALID] ${row.caseId || ''}`.trim(),
+            (`POST /workspaces [INVALID] ${row.caseId || ''}${tagInv ? ' ' + tagInv : ''}`).trim(),
             async ({ request }, testInfo) => {
               const payload = buildInvalidFromRow(row, uniq(testInfo));
               const r = await createWorkspace(request, payload); // default auth
