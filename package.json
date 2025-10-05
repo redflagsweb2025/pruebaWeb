@@ -4,24 +4,28 @@
   "description": "pruebaWebSelenium",
   "main": "playwright.config.js",
   "directories": {
-    "test": "test"
+    "test": "tests"
   },
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "report": "playwright show-report",
     "codegen": "playwright codegen",
-    "postinstall": "playwright install"
+    "postinstall": "playwright install",
+    "allure:report": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
-    "dotenv": "^16.6.1"
+    "ajv": "^8.17.1",
+    "ajv-draft-04": "^1.0.0",
+    "ajv-formats": "^3.0.1",
+    "csv-parse": "^6.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
-    "allure-playwright": "^3.4.1"
+    "allure-playwright": "^3.4.1",
+    "dotenv": "^17.2.3"
   },
   "keywords": [],
   "author": "",
