@@ -1,5 +1,5 @@
 // src/assertions/workspace_assert.js
-const { expect } = require('@playwright/test');           // ✅ faltaba
+const { expect } = require('@playwright/test');          
 const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
@@ -93,11 +93,75 @@ function expectSchema(body, schema, opts = {}) {
     expect(ok, `Esquema inválido: ${msg}\nBody: ${JSON.stringify(body)}`).toBe(true);
   }
 }
+function __readElapsedMs(res) {
+  const t = typeof res.timing === 'function' ? res.timing() : null;
+  return (t && typeof t.startTime === 'number' && typeof t.endTime === 'number')
+    ? Math.max(0, Math.round(t.endTime - t.startTime))
+    : undefined;
+}
+
+/** Común a errores: status, headers básicos, latencia */
+async function assertCommonError(res, expectedStatus, { maxMs = 2000, contentTypePattern } = {}) {
+  await expectStatus(res, expectedStatus);
+  expectHeader(res, 'date', /.+/i);
+  expectHeader(res, 'content-type', contentTypePattern || /(application\/json|text\/plain|text\/html)/i);
+  const elapsed = __readElapsedMs(res);
+  if (typeof elapsed === 'number') expectLatencyMs(elapsed, maxMs);
+  return elapsed;
+}
+
+/** 401 sin KEY → debe contener "invalid key" (text/plain o JSON) */
+async function assertErrNoKeyInvalidKey(res, { maxMs = 2000 } = {}) {
+  await assertCommonError(res, 401, { maxMs, contentTypePattern: /(application\/json|text\/plain)/i });
+  const ct = (res.headers()['content-type'] || '').toLowerCase();
+  const bodyText = ct.includes('application/json') ? JSON.stringify(await res.json()) : await res.text();
+  if (!/invalid key/i.test(bodyText)) {
+    throw new Error(`Se esperaba "invalid key" en la respuesta. Recibido: ${bodyText}`);
+  }
+}
+
+/** 401 sin TOKEN → JSON { "message": "missing scopes" } */
+async function assertErrNoTokenMissingScopes(res, { maxMs = 2000 } = {}) {
+  await assertCommonError(res, 401, { maxMs, contentTypePattern: /application\/json/i });
+  expectJsonContentType(res);
+  const body = await res.json();
+  if (String(body?.message).toLowerCase() !== 'missing scopes') {
+    throw new Error(`"message" distinto a "missing scopes". Body: ${JSON.stringify(body)}`);
+  }
+}
+
+/** 400 por display ausente o vacío → JSON con { message, error } esperados */
+async function assertErrDisplayRequired(res, { maxMs = 2000 } = {}) {
+  await assertCommonError(res, 400, { maxMs, contentTypePattern: /application\/json/i });
+  expectJsonContentType(res);
+  const body = await res.json();
+  const expectedMsg = 'Display Name must be at least 1 character';
+  const okMsg = String(body?.message) === expectedMsg;
+  const okErr = String(body?.error || '').toUpperCase() === 'ERROR';
+  if (!okMsg || !okErr) {
+    throw new Error(
+      `Body inválido. Esperado {message:"${expectedMsg}", error:"ERROR"}. Recibido: ${JSON.stringify(body)}`
+    );
+  }
+}
+
+/** 404 por método HTTP → NO debe filtrar token/key en body */
+async function assertErrWrongMethodNoTokenLeak(res, { maxMs = 2000, forbiddenSubstrings = [] } = {}) {
+  await assertCommonError(res, 404, { maxMs, contentTypePattern: /(text\/plain|text\/html|application\/json)/i });
+  const ct = (res.headers()['content-type'] || '').toLowerCase();
+  const bodyText = ct.includes('application/json') ? JSON.stringify(await res.json()) : await res.text();
+  for (const secret of (forbiddenSubstrings || []).filter(Boolean)) {
+    if (bodyText.includes(secret)) {
+      throw new Error(`Se detectó filtración de secreto en 404: "${secret}" dentro del body.`);
+    }
+  }
+}
 
 module.exports = {
+  // ...lo que ya exportabas,
   // helpers
   safeBody,
-  // asserts
+  // asserts existentes
   expectStatus,
   expectStatusIn,
   expectHeader,
@@ -105,4 +169,10 @@ module.exports = {
   expectLatencyMs,
   expectBodyHasId,
   expectSchema,
+  // NUEVOS asserts de error
+  assertCommonError,
+  assertErrNoKeyInvalidKey,
+  assertErrNoTokenMissingScopes,
+  assertErrDisplayRequired,
+  assertErrWrongMethodNoTokenLeak,
 };
