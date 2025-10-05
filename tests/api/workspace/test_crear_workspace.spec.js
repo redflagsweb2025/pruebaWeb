@@ -14,7 +14,7 @@ const { HDR_CASES, materializeHeaders, expectedStatusFor } =
 
 // builders
 const { buildValidFromRow, buildInvalidFromRow } =
-  require('../../../src/resources/payloads/workspace.payloads');
+  require('../../../src/resources/payloads/workspace/workspace.payloads');
 
 // asserts usados aquí
 const { expectStatus, expectStatusIn } =

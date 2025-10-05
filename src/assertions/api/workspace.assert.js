@@ -3,7 +3,7 @@ const { expect } = require('@playwright/test');
 const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
-
+const addDraft4 = require('ajv-draft-04');
 /** Devuelve el body de forma segura para logs */
 async function safeBody(res) {
   try {
