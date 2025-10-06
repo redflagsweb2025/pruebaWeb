@@ -1,4 +1,4 @@
-const { test, expectStatus, expectLatencyUnder  } = require('../../../api.fixture.js');
+const { test, expectStatus, expectLatencyUnder  } = require('../../../fixtures/api.fixture.js');
 const { expectHeaderContains } = require('../../../src/assertions/api/assertions.js');
 const {
   createBoard, deleteBoard, getBoard,

@@ -1,5 +1,5 @@
 // tests/api/boards_create.spec.js
-const { test, expectStatus, expectLatencyUnder } = require('../../../api.fixture.js');   // ← importa SOLO desde tu fixture
+const { test, expectStatus, expectLatencyUnder } = require('../../../fixtures/api.fixture.js');   // ← importa SOLO desde tu fixture
 const { expect } = require('@playwright/test');
 const { validateSchema,expectHeaderContains  } = require('../../../src/assertions/api/assertions.js');
 const schema = require('../../../src/resources/schemas/api/boards/createBoard.schema.json');
