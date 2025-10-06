@@ -1,6 +1,9 @@
 // src/services/workspace_page.js
 require('dotenv').config();
 const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
+const { withAuth } = require('../../src/utils/api/e2e');
+
+
 const RAW_BASE = process.env.API_BASE || 'https://api.trello.com/1';
 const BASE_URL = RAW_BASE.replace(/\/+$/, '');
 const API_KEY = process.env.TRELLO_KEY || '';
@@ -130,8 +133,23 @@ async function updateWorkspacefix(
   return await request.put(url, { form });
 }
 
+/** Crea Workspace (Organization) para e2e*/
+async function apiCreateWorkspace(request, { displayName, name }) {
+  const url = withAuth('/organizations');
+  const res = await request.post(url, { form: { displayName, name } });
+  if (!res.ok()) throw new Error(`No se pudo crear Workspace: ${res.status()} ${await res.text()}`);
+  return res.json();
+}
 
-
+/** Elimina Workspace (borra boards, listas, tarjetas) para e2e */
+async function apiDeleteWorkspace(request, idWorkspace) {
+  const url = withAuth(`/organizations/${idWorkspace}`);
+  const res = await request.delete(url);
+  if (!res.ok() && res.status() !== 404) {
+    throw new Error(`No se pudo borrar Workspace: ${res.status()} ${await res.text()}`);
+  }
+  return true;
+}
 
 module.exports = {
   createWorkspace,
@@ -144,4 +162,6 @@ module.exports = {
   createWorkspacefix,
   deleteWorkspacefix,
   updateWorkspacefix,
+  apiDeleteWorkspace,
+  apiCreateWorkspace,
 };

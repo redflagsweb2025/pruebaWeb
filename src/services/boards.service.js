@@ -1,4 +1,25 @@
 const { cfg } = require('../utils/api/config.js');
+const { withAuth } = require('../../src/utils/api/e2e');
+
+
+
+/** Crea List en un Board */
+async function apiCreateBoard(request, { name, idOrganization }) {
+  const url = withAuth('/boards');
+  const res = await request.post(url, { form: { name, idOrganization, defaultLists: 'false' } });
+  if (!res.ok()) throw new Error(`No se pudo crear Board: ${res.status()} ${await res.text()}`);
+  return res.json();
+}
+/** Obtiene datos de Board (shortUrl para UI) */
+async function apiGetBoard(request, idBoard) {
+  const url = withAuth(`/boards/${idBoard}`);
+  const res = await request.get(url);
+  if (!res.ok()) throw new Error(`No se pudo obtener Board: ${res.status()} ${await res.text()}`);
+  return res.json();
+}
+
+
+
 
 function authParams() { return { key: cfg.key, token: cfg.token }; }
 async function createBoard(request, params) {
@@ -67,4 +88,6 @@ module.exports = {
   updateBoard_noAuth, updateBoard_invalidAuth,
   deleteBoard_noAuth, deleteBoard_invalidAuth,
   getBoards_collection,
+  apiCreateBoard,
+  apiGetBoard
 };
