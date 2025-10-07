@@ -12,7 +12,7 @@
     "test:headed": "npm run clean:reports && playwright test --headed",
     "test:smoke": "npm run clean:reports && playwright test --grep \"@smoke\"",
     "test:integration": "npm run clean:reports && playwright test --grep \"@integration\"",
-    "test:e2e":"npm run clean:reports && playwright test --headed  --grep\"@e2e\"",
+   "test:e2e": "npm run clean:reports && cross-env RUN_E2E=1 npx playwright test --headed",
     "pw:report": "playwright show-report",
     "codegen": "playwright codegen",
     "postinstall": "playwright install",
@@ -30,6 +30,7 @@
     "@playwright/test": "^1.55.1",
     "allure-commandline": "^2.34.1",
     "allure-playwright": "^3.4.1",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "rimraf": "^6.0.1"
   },
