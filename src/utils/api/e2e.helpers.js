@@ -1,4 +1,4 @@
-// src/api/trello_api.js
+
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
@@ -16,9 +16,9 @@ const withAuth = (path) => {
 
 /**
  * Devuelve una ruta de imagen para portada.
- * - Usa src/resources/images/invierno.jpg si existe.
- * - Si no, genera assets/cover-demo.png (1x1 PNG válido) y devuelve esa ruta.
- * @returns {string} Ruta absoluta del archivo imagen.
+ *  Usa src/resources/images/invierno.jpg si existe.
+ *  Si no, genera assets/cover-demo.png (1x1 PNG válido) y devuelve esa ruta.
+ * @returns {string} 
  */
 function ensureCoverImage() {
   const candidate = path.resolve('src', 'resources', 'images', 'invierno.jpg');

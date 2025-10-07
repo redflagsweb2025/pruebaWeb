@@ -6,7 +6,7 @@ const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 
 
-/** Devuelve el body de forma segura para logs */
+/** Devuelve el body de respuesta */
 async function safeBody(res) {
   try {
     const ct = (res.headers()['content-type'] || '').toLowerCase();
@@ -29,7 +29,7 @@ async function expectStatus(res, expected) {
   ).toBe(Number(expected));
 }
 
-/** Valida que el status esté en una lista permitida (útil para teardowns) */
+/** Valida que el status esté en una lista permitida  */
 async function expectStatusIn(res, allowedCodes = [200, 204, 404]) {
   const got = res.status();
   expect(
@@ -63,7 +63,7 @@ function expectJsonContentType(res) {
   expect(ct, `Content-Type no es JSON. Recibido: ${ct}`).toMatch(/application\/json/);
 }
 
-/** Valida el tiempo de latencia en ms (tú mides afuera y pasas el valor) */
+/** Valida el tiempo de latencia en ms  */
 function expectLatencyMs(elapsedMs, maxMs) {
   expect(
     elapsedMs,
@@ -102,7 +102,7 @@ function __readElapsedMs(res) {
     : undefined;
 }
 
-/** Común a errores: status, headers básicos, latencia */
+/** Común a errores status, headers básicos, latencia */
 async function assertCommonError(res, expectedStatus, { maxMs = 2000, contentTypePattern } = {}) {
   await expectStatus(res, expectedStatus);
   expectHeader(res, 'date', /.+/i);
@@ -112,7 +112,7 @@ async function assertCommonError(res, expectedStatus, { maxMs = 2000, contentTyp
   return elapsed;
 }
 
-/** 401 sin KEY → debe contener "invalid key" (text/plain o JSON) */
+/** 401 sin KEY → debe contener "invalid key"  */
 async function assertErrNoKeyInvalidKey(res, { maxMs = 2000 } = {}) {
   await assertCommonError(res, 401, { maxMs, contentTypePattern: /(application\/json|text\/plain)/i });
   const ct = (res.headers()['content-type'] || '').toLowerCase();
@@ -160,10 +160,8 @@ async function assertErrWrongMethodNoTokenLeak(res, { maxMs = 2000, forbiddenSub
 }
 
 module.exports = {
-  // ...lo que ya exportabas,
-  // helpers
+
   safeBody,
-  // asserts existentes
   expectStatus,
   expectStatusIn,
   expectHeader,
@@ -171,7 +169,6 @@ module.exports = {
   expectLatencyMs,
   expectBodyHasId,
   expectSchema,
-  // NUEVOS asserts de error
   assertCommonError,
   assertErrNoKeyInvalidKey,
   assertErrNoTokenMissingScopes,

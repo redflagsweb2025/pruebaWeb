@@ -1,9 +1,5 @@
 require('dotenv').config();
 
-/**
- * Variantes de headers/auth. Para Trello, key y token normalmente van como query params,
- * pero mantenemos una abstracción por si quieres moverlos a headers en algún proxy.
- */
 const HDR_CASES = {
   default: 'default',
   noToken: 'noToken',

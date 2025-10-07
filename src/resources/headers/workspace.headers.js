@@ -1,10 +1,9 @@
-// src/resources/headers/workspace.headers.js
 require('dotenv').config();
 
-const matrix = require('../data/api/workspace.data.json'); // ← ruta desde /resources/headers → /resources/data/api
+const matrix = require('../data/api/workspace.data.json'); 
 
-// ← debe ser un ARRAY
-const HDR_CASES = Object.keys(matrix); // ["default","noAuth","noKey","badToken"]
+
+const HDR_CASES = Object.keys(matrix); 
 
 
 //funcion crea headers y llama al json y reemeplaza los datos segun el campo del json
@@ -26,7 +25,7 @@ function expectedStatusFor(row, hdrCase) {
   if (hdrCase === 'default') 
     return Number.isFinite(csvExp) ? csvExp : 200;
   if (hdrCase === 'noAuth')   return 401;
-  if (hdrCase === 'noKey')    return 401; // cambia a 400 si tu backend lo hace así
+  if (hdrCase === 'noKey')    return 401; 
   if (hdrCase === 'badToken') return 401;
   return 200;
 }

@@ -32,8 +32,7 @@ let schemaCreate;
 try {
   schemaCreate = require('../../../src/resources/schemas/workspace.schemaresp.json');
 } catch { /* sin esquema */ }
-/*
-/** Convierte "smoke integracion" o "smoke,integracion" -> " @smoke @integration" */
+
 
 
 test.describe.parallel('Crear Workspaces API', () => {
@@ -58,10 +57,10 @@ test.describe.parallel('Crear Workspaces API', () => {
 
             applyAllureMeta(row, { hdrCase, method: 'POST', resource: 'Workspace' });
 
-            // headers “extra” (no auth). Trello usa auth por URL:
+           
             const headers = materializeHeaders(hdrCase);
 
-            // variantes de auth por URL
+            
             const authOpts =
               hdrCase === 'noAuth'   ? { includeToken: false } :
               hdrCase === 'noKey'    ? { includeKey:   false } :
@@ -92,7 +91,7 @@ test.describe.parallel('Crear Workspaces API', () => {
               await expectStatus(r, expected);
             });
 
-            // Derivar "kind" para los casos que fallan por variante de auth
+            
             const errorKind =
               hdrCase === 'noKey'   ? 'NO_KEY'
             : hdrCase === 'noAuth'  ? 'NO_TOKEN'
@@ -103,14 +102,14 @@ test.describe.parallel('Crear Workspaces API', () => {
               // ---------- ÉXITO ----------
               const body = await allure.step('VALIDATE: schema + performance', async () => {
                 const b = await validateCreateWorkspaceResponse(r, payload, {
-                  schema: schemaCreate, // quita si no tienes esquema
+                  schema: schemaCreate, 
                   maxMs: 1500,
                 });
                 attach('Parsed Body (create)', b);
                 return b;
               });
 
-              // Registrar ID para teardown automático del fixture
+              
               await allure.step('CLEANUP: registrar id para teardown', async () => {
                 attach('Created ID', { id: body.id });
                 cleaner(body.id);
@@ -175,7 +174,7 @@ test.describe.parallel('Crear Workspaces API', () => {
                 await expectStatus(r, exp);
               });
 
-              // Derivar kind desde el payload inválido (sin usar row.reason)
+             
               const needsDisplay =
                 payload?.displayName === undefined ||
                 (typeof payload?.displayName === 'string' && payload.displayName.trim().length === 0);

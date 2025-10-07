@@ -16,7 +16,7 @@ const { expectCardHasCoverOnBoard } = require('../../src/assertions/ui/board.ass
 // Services (API)
 const { apiCreateWorkspace, apiDeleteWorkspace } = require('../../src/services/workspace.service');
 const { apiCreateBoard, apiGetBoard } = require('../../src/services/boards.service');
-const { apiCreateList } = require('../../src/services/lists.services');
+const { apiCreateList } = require('../../src/services/lists.service');
 
 dotenv.config();
 

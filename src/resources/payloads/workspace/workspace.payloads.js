@@ -1,5 +1,4 @@
-// src/resources/payloads/workspace.payloads.js
-// CJS
+
 
 //funcion para payloads validos y agregar sufijos 
 function buildValidFromRow(row, suffix = '') {

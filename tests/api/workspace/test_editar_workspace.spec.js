@@ -8,12 +8,9 @@ const { updateWorkspacefix, getWorkspaces } = require('../../../src/services/wor
 const { expectStatus } = require('../../../src/assertions/api/workspace.assert');
 const { validateErrorByKind, resolveOrgId,attach ,applyAllureMeta} = require('../../../src/utils/api/workspace.helpers');
 
-// Cargar CSV una sola vez
+
 const rows = loadCsv('src/resources/data/api/updatews.data.csv');
 
-
-
-// Iteración de casos desde el CSV
 for (const row of rows) {
   const {
     caseId,
@@ -44,7 +41,7 @@ for (const row of rows) {
 
       const exp = Number(expectedStatus);
 
-      // Resolver el ID correcto
+      
       let idToUse = resolveOrgId(orgId, workspace);
       if (exp === 200) {
         if (!workspace?.id) throw new Error('No hay ID del workspace del fixture.');
@@ -106,8 +103,6 @@ for (const row of rows) {
             );
           }
           if (desc) expect(String(body.desc || '')).toBe(String(desc));
-          // Si tu API devuelve website, puedes validar aquí:
-          // if (website) expect(String(body.website || '')).toBe(String(website));
           attach('Body final (GET)', body);
         });
 

@@ -1,4 +1,3 @@
-// src/data/generateCards.js
 import { faker } from '@faker-js/faker';
 
 export function generateFakeCards(n = 5) {

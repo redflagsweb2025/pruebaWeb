@@ -11,9 +11,6 @@ const { validateErrorByKind, resolveOrgId ,applyAllureMeta,attach} = require('..
 const rows = loadCsv('src/resources/data/api/deleteworkspaces.data.csv');
 
 
-
-
-// ---------- matriz desde CSV ----------
 for (const row of rows) {
   const {
     caseId,
@@ -38,7 +35,7 @@ for (const row of rows) {
 
       const exp = Number(expectedStatus);
 
-      // Para 200 usa SIEMPRE el id del fixture
+      
       let idToUse = resolveOrgId(orgId, workspace);
       if (exp === 200) {
         if (!workspace?.id) throw new Error('No hay ID del workspace del fixture.');
@@ -65,7 +62,7 @@ for (const row of rows) {
       });
 
       if (exp === 200) {
-        // ---------- GET post-delete ----------
+        
         const resGet = await allure.step('GET /workspaces/:id — verificar no existencia', async () => {
           const g = await getWorkspaces(request, { idOrName: idToUse, hdrCase: HDR_CASES.default });
           attach('Response Status (GET post-delete)', { status: g.status() });

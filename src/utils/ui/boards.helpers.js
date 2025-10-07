@@ -1,10 +1,10 @@
-// src/page/ui/boards/utils.js
+
 const path = require('path');
 
 const reEscape = (s) => String(s ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const absPath = (p) => (path.isAbsolute(p) ? p : path.resolve(p));
 
-// Selectores centralizados (reusables)
+
 const SELECTORS = {
   boardShell: [
     '[data-testid="board"]',
@@ -54,7 +54,7 @@ const SELECTORS = {
     'a[href*="/attachments/"]'
   ].join(', '),
 
-  // portada en card (vista board)
+  
   coverOnCard: [
     '[data-testid="card-cover"]',
     '[class*="card-cover"]',
@@ -108,7 +108,7 @@ function cardInList(page, listName, title) {
 }
 
 /**
- * ¿El detalle de tarjeta está abierto? (opcionalmente valida el título)
+ *  valida el título o detalle de card
  * @param {import('@playwright/test').Page} page
  * @param {import('@playwright/test').Locator} cardDetailAnyLocator
  * @param {string=} expectedTitle
@@ -131,7 +131,7 @@ async function isCardDetailOpen(page, cardDetailAnyLocator, expectedTitle) {
 }
 
 /**
- * Cierra el card-back (modal/drawer) y vuelve al board si quedó en /c/…
+ * Cierra el card 
  * @param {import('@playwright/test').Page} page
  * @param {import('@playwright/test').Locator} closeBtnLocator
  */

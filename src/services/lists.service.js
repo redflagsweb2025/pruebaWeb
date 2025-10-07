@@ -1,5 +1,16 @@
 const { cfg } = require('../utils/api/config.js');
+const { withAuth } = require('../utils/api/e2e.helpers');
 function authParams() { return { key: cfg.key, token: cfg.token }; }
+
+
+async function apiCreateList(request, { name, idBoard }) {
+  const url = withAuth('/lists');
+  const res = await request.post(url, { form: { name, idBoard } });
+  if (!res.ok()) throw new Error(`No se pudo crear List: ${res.status()} ${await res.text()}`);
+  return res.json();
+}
+
+
 
 async function createList(request, params /* { name, idBoard, pos } */) {
   return request.post(`${cfg.apiBase}/lists`, {
@@ -56,4 +67,5 @@ module.exports = {
   createList_noAuth, createList_invalidAuth,
   getList_noAuth, updateList_noAuth, deleteList_noAuth,
   updateList_invalidAuth, deleteList_invalidAuth,
+  apiCreateList,
 };
