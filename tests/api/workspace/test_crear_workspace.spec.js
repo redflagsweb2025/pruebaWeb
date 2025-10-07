@@ -33,7 +33,7 @@ try {
   schemaCreate = require('../../../src/resources/schemas/workspace.schemaresp.json');
 } catch { /* sin esquema */ }
 /*
-/** Convierte "smoke integracion" o "smoke,integracion" -> " @smoke @integracion" */
+/** Convierte "smoke integracion" o "smoke,integracion" -> " @smoke @integration" */
 
 
 test.describe.parallel('Crear Workspaces API', () => {
