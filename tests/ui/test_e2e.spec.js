@@ -28,6 +28,9 @@ test.beforeAll(async () => {
 
 test.setTimeout(10 * 60 * 1000);
 
+const RUN_E2E = process.env.RUN_E2E === '1';
+test.skip(!RUN_E2E, 'Este E2E solo corre cuando RUN_E2E=1');
+
 test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → teardown → logout @e2e', async ({ page, request, context }) => {
   // Credenciales
   const email = process.env.TRELLO_EMAIL;
