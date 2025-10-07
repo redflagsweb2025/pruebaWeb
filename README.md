@@ -6,7 +6,7 @@ Las pruebas están diseñadas para ejecutarse tanto localmente como en el flujo 
 
 ---
 
-## 🛠️ Requisitos e Instalación
+##  Requisitos e Instalación
 
 ### Requisitos Previos
 
@@ -36,7 +36,7 @@ Asegúrate de tener instalado:
 
 ---
 
-## ⚙️ Configuración de Credenciales (CRÍTICO)
+##  Configuración de Credenciales (CRÍTICO)
 
 Para que las pruebas de API y E2E se ejecuten correctamente, necesitas configurar tus credenciales de Trello y la API base. **Estas credenciales son secretas y NUNCA deben subirse a Git.**
 
