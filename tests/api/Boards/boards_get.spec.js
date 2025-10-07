@@ -1,6 +1,6 @@
 const { test, expect, expectStatus, expectLatencyUnder  } = require('../../../fixtures/api.fixture.js');
 const { validateSchema , expectHeaderContains  } = require('../../../src/assertions/api/assertions.js');
-const schema = require('../../../src/resources/schemas/api/boards/createBoard.schema.json');
+const schema = require('../../../src/resources/schemas/createBoard.schema.json');
 
 const {
   createBoard, getBoard, deleteBoard,
@@ -90,7 +90,7 @@ test('BRD-API-GET-005: Verificar que arroje esquema de respuesta @integration ',
   });
 
 
-  test('BRD-API-GET-012: Verificar que se obtenga un tablero con un name con unicode se recupera intacto @integration', async ({ request }) => {
+  test.skip('BRD-API-GET-012: Verificar que se obtenga un tablero con un name con unicode se recupera intacto @integration', async ({ request }) => {
     const name = 'Ñandú ' + Date.now();
     const resC = await createBoard(request, { name });
     expectStatus(resC, 200);

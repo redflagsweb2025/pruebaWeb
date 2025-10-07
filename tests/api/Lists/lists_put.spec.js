@@ -1,6 +1,6 @@
 const { test, expect, expectStatus, expectLatencyUnder } = require('../../../fixtures/api.fixture.js');
 const { validateSchema } = require('../../../src/assertions/api/assertions.js');
-const schema = require('../../../src/resources/schemas/api/lists/list.schema.json');
+const schema = require('../../../src/resources/schemas/list.schema.json');
 const {
   updateList, updateList_noAuth, updateList_invalidAuth, getList
 } = require('../../../src/services/lists.service.js');

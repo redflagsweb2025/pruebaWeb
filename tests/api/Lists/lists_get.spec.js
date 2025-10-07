@@ -1,6 +1,7 @@
 const { test, expect, expectStatus, expectLatencyUnder } = require('../../../fixtures/api.fixture.js');
 const { validateSchema, expectHeaderContains } = require('../../../src/assertions/api/assertions.js');
-const schema = require('../../../src/resources/schemas/api/lists/list.schema.json');
+//const schema = require('../../../src/resources/schemas/list.schema.json
+const schema = require('../../../src/resources/schemas/list.schema.json');
 const { getList, getList_noAuth, updateList, deleteList } = require('../../../src/services/lists.service.js');
 
 test.describe('@api Lists - GET /lists/{id}', () => {

@@ -10,7 +10,7 @@ const {
   setOnAnyFileInput,
   absPath,
   reEscape,
-} = require('../../../utils/ui/boards.helpers');
+} = require('../utils/ui/boards.helpers');
 
 class BoardPage {
   /** @param {import('@playwright/test').Page} page */

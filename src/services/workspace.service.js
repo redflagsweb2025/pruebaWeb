@@ -1,7 +1,7 @@
 // src/services/workspace_page.js
 require('dotenv').config();
 const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
-const { withAuth } = require('../../src/utils/api/e2e');
+const { withAuth } = require('../utils/api/e2e.helpers');
 
 
 const RAW_BASE = process.env.API_BASE || 'https://api.trello.com/1';

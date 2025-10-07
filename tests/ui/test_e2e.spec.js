@@ -1,4 +1,4 @@
-const { ensureCoverImage } = require('../../../src/utils/api/e2e')
+const { ensureCoverImage } = require('../../src/utils/api/e2e.helpers')
 
 // tests/e2e/trello.e2e.spec.js
 const { test, expect } = require('@playwright/test');
@@ -7,16 +7,16 @@ const path = require('path');
 const fs = require('fs');
 
 // Page Objects (UI)
-const { LoginPage } = require('../../../src/page/ui/login/login.page');
-const { BoardPage } = require('../../../src/page/ui/boards/boards.page');
+const { LoginPage } = require('../../src/page/login.page');
+const { BoardPage } = require('../../src/page/boards.page');
 
 // Assertions (UI)
-const { expectCardHasCoverOnBoard } = require('../../../src/assertions/ui/board.assert');
+const { expectCardHasCoverOnBoard } = require('../../src/assertions/ui/board.assert');
 
 // Services (API)
-const { apiCreateWorkspace, apiDeleteWorkspace } = require('../../../src/services/workspace_page');
-const { apiCreateBoard, apiGetBoard } = require('../../../src/services/boards.service');
-const { apiCreateList } = require('../../../src/services/lists.services');
+const { apiCreateWorkspace, apiDeleteWorkspace } = require('../../src/services/workspace.service');
+const { apiCreateBoard, apiGetBoard } = require('../../src/services/boards.service');
+const { apiCreateList } = require('../../src/services/lists.services');
 
 dotenv.config();
 

@@ -4,7 +4,7 @@ const { allure } = require('allure-playwright');
 
 const { loadCsv } = require('../../../src/utils/api/csv');
 const { HDR_CASES } = require('../../../src/resources/headers/workspacesheaderssinjson');
-const { getWorkspaces, getWorkspaceWithoutId } = require('../../../src/services/workspace_page');
+const { getWorkspaces, getWorkspaceWithoutId } = require('../../../src/services/workspace.service');
 const { expectStatus } = require('../../../src/assertions/api/workspace.assert');
 const {
   validateGetWorkspaceResponse,
