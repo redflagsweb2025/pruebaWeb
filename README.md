@@ -1,4 +1,4 @@
-## pruebaWeb: Framework de Automatización E2E/API con Playwright de TRELLO
+# 🚀 pruebaWeb: Framework de Automatización E2E/API con Playwright
 
 Este repositorio contiene el framework de pruebas End-to-End (E2E) y API para el sistema de Trello, utilizando **Playwright** y **Node.js**.
 
