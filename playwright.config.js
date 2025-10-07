@@ -32,7 +32,7 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : '50%',  // número de workers
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
-  expect: { timeout: 5_000 },
+  expect: { timeout: 3_000 },
 
   use: {
     baseURL: process.env.UI_BASE || 'https://trello.com',  // ⬅️ UI_BASE
