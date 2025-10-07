@@ -1,70 +1,100 @@
-# .github/workflows/playwright_tests.yml
-
-# 1. Nombre del Workflow
 name: Playwright E2E Tests
 
-# 2. Eventos que disparan el workflow
 on:
   push:
-    branches: [ development ]
+    branches:
+      - development
+      - BQ_tableros_api
+      - CCTestBranch
+      - CeniaChoquevillca-patch-1
+      - FMTestBranch
+      - fixCC
   pull_request:
-    branches: [ development ]
+    branches:
+      - development
+      - BQ_tableros_api
+      - CCTestBranch
+      - CeniaChoquevillca-patch-1
+      - FMTestBranch
+      - fixCC
   workflow_dispatch:
 
-# 3. Trabajos (Jobs) a ejecutar
 jobs:
-  # Define un trabajo llamado 'test'
-  test:
-    # 4. Entorno de ejecución (usaremos una máquina Ubuntu)
+  tests:
+    name: Run ${{ matrix.tag }} (headed)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ['@smoke', '@integration']
 
-    # 5. Pasos del trabajo
+    env:
+      # Bases (usa secrets si los definiste; si no, caen al default del código)
+      UI_BASE: ${{ secrets.UI_BASE || 'https://trello.com' }}
+      API_BASE: ${{ secrets.API_BASE || 'https://api.trello.com/1' }}
+
+      # Credenciales Trello (DEBEN estar en Secrets)
+      TRELLO_EMAIL:    ${{ secrets.TRELLO_EMAIL }}
+      TRELLO_PASSWORD: ${{ secrets.TRELLO_PASSWORD }}
+      # Usa el que corresponda en tu helper/services
+      TRELLO_API_KEY:  ${{ secrets.TRELLO_API_KEY }}
+      TRELLO_KEY:      ${{ secrets.TRELLO_KEY }}
+      TRELLO_TOKEN:    ${{ secrets.TRELLO_TOKEN }}
+
     steps:
-    
-    # Paso 5a: Descarga el código del repositorio
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # Paso 5b: Configura Node.js
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-    # Paso 5c: Instala dependencias y Playwright (Chrome, Firefox, WebKit)
-    - name: Install dependencies and Playwright
-      run: |
-        npm install
-        npx playwright install --with-deps
+      - name: Install dependencies
+        run: npm ci
 
-    # Paso 5d: ¡Ejecuta las pruebas inyectando los Secrets! (AHORA CON REPORTER ALLURE)
-    - name: Run Playwright tests
-      # ⚠️ CAMBIO CLAVE: Añadir --reporter=line,allure-playwright para guardar resultados
-      run: npx playwright test --reporter=line,allure-playwright
-      env:
-        UI_BASE: ${{ secrets.UI_BASE }}
-        API_BASE: ${{ secrets.API_BASE }}
-        TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
-        TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
-        TRELLO_PASSWORD: ${{ secrets.TRELLO_PASSWORD }}
-        TRELLO_EMAIL: ${{ secrets.TRELLO_EMAIL }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-    # ----------------------------------------------------
-    # ⬇️ NUEVOS PASOS PARA ALLURE REPORTING ⬇️
-    # ----------------------------------------------------
-    
-    # Paso 5e: Instala el CLI de Allure (necesario para generar el HTML)
-    - name: Install Allure CLI
-      run: npm install -g allure-commandline
+      - name: Clean previous reports
+        run: rm -rf allure-results allure-report playwright-report || true
 
-    # Paso 5f: Genera el Reporte HTML a partir de los resultados (JSON)
-    - name: Generate Allure Report
-      run: npx allure generate allure-results --clean
+      # Ejecuta EN HEADED + filtra por etiqueta de la matriz
+      - name: Run Playwright ${{ matrix.tag }} (headed)
+        run: |
+          xvfb-run -a npx playwright test --headed --grep "${{ matrix.tag }}" --reporter=line,allure-playwright
 
-    # Paso 5g: Publica el Reporte como un artefacto de GitHub para descargarlo
-    - name: Publish Allure Report Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: reporte-playwright-allure
-        path: allure-report
-        retention-days: 7 # Guarda el reporte por 7 días
+      # ------ Artefactos Playwright ------
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.tag }}
+          path: playwright-report
+          retention-days: 7
+
+      # ------ Allure ------
+      - name: Install Allure CLI
+        if: always()
+        run: npm i -g allure-commandline
+
+      - name: Upload Allure raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.tag }}
+          path: allure-results
+          retention-days: 7
+
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate ./allure-results -o ./allure-report --clean
+
+      - name: Upload Allure report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ matrix.tag }}
+          path: allure-report
+          retention-days: 7
