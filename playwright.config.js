@@ -28,14 +28,14 @@ module.exports = defineConfig({
   grepInvert: GREP_INVERT,
 
  
-  fullyParallel: true,                  // corre tests de un archivo en paralelo
-  workers: process.env.CI ? 2 : '50%',  // número de workers
+  fullyParallel: true,                  
+  workers: process.env.CI ? 2 : '50%',  
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
   expect: { timeout: 3_000 },
 
   use: {
-    baseURL: process.env.UI_BASE || 'https://trello.com',  // ⬅️ UI_BASE
+    baseURL: process.env.UI_BASE || 'https://trello.com',  
     headless: true,
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
