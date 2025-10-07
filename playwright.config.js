@@ -27,7 +27,7 @@ module.exports = defineConfig({
   grep: GREP,
   grepInvert: GREP_INVERT,
 
-  // ⬇️ Estas opciones van a nivel raíz, no dentro de `use`
+ 
   fullyParallel: true,                  // corre tests de un archivo en paralelo
   workers: process.env.CI ? 2 : '50%',  // número de workers
   retries: process.env.CI ? 1 : 0,
