@@ -4,7 +4,7 @@ const { allure } = require('allure-playwright');
 
 const { loadCsv } = require('../../../src/utils/api/csv');
 const { HDR_CASES } = require('../../../src/resources/headers/workspacesheaderssinjson');
-const { deleteWorkspacefix, getWorkspaces } = require('../../../src/services/workspace_page');
+const { deleteWorkspacefix, getWorkspaces } = require('../../../src/services/workspace.service');
 const { expectStatus } = require('../../../src/assertions/api/workspace.assert');
 const { validateErrorByKind, resolveOrgId ,applyAllureMeta,attach} = require('../../../src/utils/api/workspace.helpers');
 

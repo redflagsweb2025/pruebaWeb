@@ -1,4 +1,4 @@
-const { withAuth } = require('../../src/utils/api/e2e');
+const { withAuth } = require('../utils/api/e2e.helpers');
 
 async function apiCreateList(request, { name, idBoard }) {
   const url = withAuth('/lists');

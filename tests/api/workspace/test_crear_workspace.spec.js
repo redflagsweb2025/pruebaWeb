@@ -2,7 +2,7 @@ const { test } = require('../../../fixtures/ws.fixtures');
 const { allure } = require('allure-playwright');
 
 const { createWorkspace, getWorkspace } =
-  require('../../../src/services/workspace_page');
+  require('../../../src/services/workspace.service');
 
 const { loadCsv } = require('../../../src/utils/api/csv');
 

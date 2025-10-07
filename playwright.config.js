@@ -12,7 +12,7 @@ const GREP = process.env.RUN_TAGS ? new RegExp(process.env.RUN_TAGS) : undefined
 const GREP_INVERT = process.env.RUN_EXCLUDE ? new RegExp(process.env.RUN_EXCLUDE) : undefined;
 
 module.exports = defineConfig({
-  testDir: './tests/ui/e2e',
+  testDir: './tests',
 
   reporter: [
     ['list'],
@@ -27,12 +27,12 @@ module.exports = defineConfig({
   grep: GREP,
   grepInvert: GREP_INVERT,
 
-  // ⬇️ Estas opciones van a nivel raíz, no dentro de `use`
+ 
   fullyParallel: true,                  // corre tests de un archivo en paralelo
   workers: process.env.CI ? 2 : '50%',  // número de workers
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
-  expect: { timeout: 5_000 },
+  expect: { timeout: 3_000 },
 
   use: {
     baseURL: process.env.UI_BASE || 'https://trello.com',  // ⬅️ UI_BASE
