@@ -6,10 +6,10 @@ name: Playwright E2E Tests
 # 2. Eventos que disparan el workflow
 on:
   push:
-    branches: [ development ] # Ejecutar cuando se sube código a 'development'
+    branches: [ development ]
   pull_request:
-    branches: [ development ] # Ejecutar cuando se abre un PR a 'development'
-  workflow_dispatch: # Permite ejecutar manualmente desde la interfaz de GitHub
+    branches: [ development ]
+  workflow_dispatch:
 
 # 3. Trabajos (Jobs) a ejecutar
 jobs:
@@ -29,19 +29,42 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20 # Usa la versión de Node.js de tu proyecto
-        
+        node-version: 20
+
     # Paso 5c: Instala dependencias y Playwright (Chrome, Firefox, WebKit)
     - name: Install dependencies and Playwright
       run: |
         npm install
         npx playwright install --with-deps
 
-
-    # Paso 5d: ¡Ejecuta las pruebas inyectando los Secrets!
+    # Paso 5d: ¡Ejecuta las pruebas inyectando los Secrets! (AHORA CON REPORTER ALLURE)
     - name: Run Playwright tests
-      run: npx playwright test
-      env: # Usamos la sección 'env' para inyectar variables
+      # ⚠️ CAMBIO CLAVE: Añadir --reporter=line,allure-playwright para guardar resultados
+      run: npx playwright test --reporter=line,allure-playwright
+      env:
+        UI_BASE: ${{ secrets.UI_BASE }}
         API_BASE: ${{ secrets.API_BASE }}
         TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
         TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+        TRELLO_PASSWORD: ${{ secrets.TRELLO_PASSWORD }}
+        TRELLO_EMAIL: ${{ secrets.TRELLO_EMAIL }}
+
+    # ----------------------------------------------------
+    # ⬇️ NUEVOS PASOS PARA ALLURE REPORTING ⬇️
+    # ----------------------------------------------------
+    
+    # Paso 5e: Instala el CLI de Allure (necesario para generar el HTML)
+    - name: Install Allure CLI
+      run: npm install -g allure-commandline
+
+    # Paso 5f: Genera el Reporte HTML a partir de los resultados (JSON)
+    - name: Generate Allure Report
+      run: npx allure generate allure-results --clean
+
+    # Paso 5g: Publica el Reporte como un artefacto de GitHub para descargarlo
+    - name: Publish Allure Report Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: reporte-playwright-allure
+        path: allure-report
+        retention-days: 7 # Guarda el reporte por 7 días
