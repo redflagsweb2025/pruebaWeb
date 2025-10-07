@@ -12,6 +12,7 @@
     "test:headed": "npm run clean:reports && playwright test --headed",
     "test:smoke": "npm run clean:reports && playwright test --grep \"@smoke\"",
     "test:integration": "npm run clean:reports && playwright test --grep \"@integration\"",
+    "test:e2e":"npm run clean:reports && playwright test --headed \"@e2e\"",
     "pw:report": "playwright show-report",
     "codegen": "playwright codegen",
     "postinstall": "playwright install",
