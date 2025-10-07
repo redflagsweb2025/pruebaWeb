@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ListResponse",
+  "type": "object",
+  "required": ["id", "name", "idBoard", "closed"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "idBoard": { "type": "string", "minLength": 1 },
+    "closed": { "type": "boolean" },
+    "pos": { "type": ["number", "integer"] }
+  },
+  "additionalProperties": true
+}

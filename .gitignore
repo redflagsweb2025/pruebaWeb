@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+.env
+*.env
+.env.*
+/venv/
+/.venv/
+.env
+/playwright-report/
+/test-results/
+/reports/
+/node_modules/
+/playwright-report/index.html
+<<<<<<< HEAD
+/test-results/.last-run.json
+/allure-report
+/allure-results
+=======
+/test-results/.last-run.json
+/allure-report
+/allure-results>>>>>>> cd4cadfd646838c0699f7932bb594c261cc6aab0
+=======
 # Dependencias de Node (Playwright, etc.)
 node_modules/
 package-lock.json
@@ -15,3 +36,4 @@ playwright-core/
 /test/api/
 /test/ui/
 /test/utils/
+>>>>>>> c91bf8918b0ef781bc868b2bed719d21078b74a4

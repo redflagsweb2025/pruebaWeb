@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "desc": {
+      "type": "string"
+    },
+    "descData": {
+      "type": "object",
+      "properties": {
+        "emoji": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "emoji"
+      ]
+    },
+    "url": {
+      "type": "string"
+    },
+    "website": {
+      "type": "null"
+    },
+    "teamType": {
+      "type": "null"
+    },
+    "logoHash": {
+      "type": "null"
+    },
+    "logoUrl": {
+      "type": "null"
+    },
+    "offering": {
+      "type": "string"
+    },
+    "products": {
+      "type": "array",
+      "items": {}
+    },
+    "powerUps": {
+      "type": "array",
+      "items": {}
+    },
+    "idMemberCreator": {
+      "type": "string"
+    },
+    "limits": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+    
+    
+  ]
+}

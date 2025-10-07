@@ -1,0 +1,40 @@
+{
+  "name": "pruebaweb",
+  "version": "1.0.0",
+  "description": "pruebaWebSelenium",
+  "main": "playwright.config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "clean:reports": "rimraf allure-results allure-report playwright-report",
+    "test": "npm run clean:reports && playwright test",
+    "test:headed": "npm run clean:reports && playwright test --headed",
+    "test:smoke": "npm run clean:reports && playwright test --grep \"@smoke\"",
+    "test:integration": "npm run clean:reports && playwright test --grep \"@integration\"",
+   "test:e2e": "npm run clean:reports && cross-env RUN_E2E=1 npx playwright test --headed",
+    "pw:report": "playwright show-report",
+    "codegen": "playwright codegen",
+    "postinstall": "playwright install",
+    "allure:gen": "allure generate ./allure-results -o ./allure-report --clean",
+    "allure:open": "allure open ./allure-report"
+  },
+  "dependencies": {
+    "@faker-js/faker": "8.4.1",
+    "ajv": "^8.17.1",
+    "ajv-draft-04": "^1.0.0",
+    "ajv-formats": "^3.0.1",
+    "csv-parse": "^6.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "allure-commandline": "^2.34.1",
+    "allure-playwright": "^3.4.1",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "rimraf": "^6.0.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
