@@ -12,7 +12,7 @@ const GREP = process.env.RUN_TAGS ? new RegExp(process.env.RUN_TAGS) : undefined
 const GREP_INVERT = process.env.RUN_EXCLUDE ? new RegExp(process.env.RUN_EXCLUDE) : undefined;
 
 module.exports = defineConfig({
-  testDir: './tests/ui/e2e',
+  testDir: './tests',
 
   reporter: [
     ['list'],
