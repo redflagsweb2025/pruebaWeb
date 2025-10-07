@@ -52,3 +52,39 @@ TRELLO_KEY=TU_API_KEY_PERSONAL
 TRELLO_TOKEN=TU_TOKEN_SECRETO_PERSONAL
 TRELLO_PASSWORD=TU_PASSWORD_AQUI
 TRELLO_EMAIL=TU_EMAIL_AQUI
+```
+### 2. Comandos para correr las pruebas
+
+Para correr las pruebas con los marks de @smoke se realiza con el siguiente comando.
+  ```bash
+    npm run test:smoke
+    ```
+
+Para correr las pruebas con los marks de @integration se realiza con el siguiente comando.
+  ```bash
+    npm run test:integration
+    ```
+Para correr el test case del e2e
+  ```bash
+    npm run test:e2e
+     ```
+Para correr todos los test cases con el siguiente comando
+  ```bash
+    npm test
+     ```
+Para generar un reporte en html el siguiente comando
+  ```bash
+    npm run pw_report
+     ```
+Para generar un reporte en allure el siguiente comando
+  ```bash
+    npm run allure:gen
+     ```
+Para abrir el reporte en allure
+  ```bash
+    npm run allure:open
+     ```
+Para correr los test case de ui con headed
+  ```bash
+    npm run test:headed
+     ```
