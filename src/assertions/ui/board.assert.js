@@ -1,14 +1,11 @@
-// Helpers de verificación (puros, sin lógica de acciones)
 const { SELECTORS } = require('../../utils/ui/boards.helpers');
-
+//-------Verificar si es visible el modal del card
 async function expectCardHasAttachment(page, cardLocator, nameRegex = /.*/i) {
-  // Abre detalle si es un link (opcional: el test podría ya estar en detalle)
+  
   const modal = page.getByRole('dialog').first();
 
-  // Si ya estamos en /c/ mantener; si no, puedes abrir el card antes de llamar este assert.
-  // Espera que exista cualquier adjunto
   const any = modal.locator(SELECTORS.attachmentAny).first();
-  await any.waitFor({ state: 'visible', timeout: 15000 });
+  await any.waitFor({ state: 'visible', timeout: 5000 });
 
   // Si se requiere validar nombre:
   if (nameRegex) {
@@ -18,10 +15,10 @@ async function expectCardHasAttachment(page, cardLocator, nameRegex = /.*/i) {
     await byName.waitFor({ state: 'visible', timeout: 5000 });
   }
 }
-
+//------verificar la portada 
 async function expectCardHasCoverOnBoard(page, cardLocator) {
-  // Estar en el board (si estás en /c/ haz goBack antes en tu PageObject)
-  await cardLocator.waitFor({ timeout: 8000 });
+  
+  await cardLocator.waitFor({ timeout: 5000 });
   await cardLocator.locator(SELECTORS.coverOnCard).first().waitFor({ timeout: 8000 });
 }
 

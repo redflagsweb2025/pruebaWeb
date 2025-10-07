@@ -23,7 +23,6 @@ const rows = loadCsv('src/resources/data/api/getworkspaces.data.csv');
 
 
 
-// ---------- matriz desde CSV ----------
 for (const row of rows) {
   const {
     caseId,
@@ -42,17 +41,17 @@ for (const row of rows) {
   const tag = markers.length ? ' ' + markers.map(m => `@${m}`).join(' ') : '';
 
   test2(
-    // Corrijo el título: es GET, no DEL
+   
     `[GET] ${caseId}: ${title}${reason ? ` (${reason})` : ''} (hdr=${hdrCase})${tag}`,
     async ({ request, workspace }) => {
       applyAllureMeta(row, { hdrCase, method: 'GET', resource: 'Workspace' });
       const exp = Number(expectedStatus);
 
-      // 1) Resolver orgId desde CSV/placeholders y limpiar comillas
+      
       let resolvedOrgId = resolveOrgIdFromPlaceholders(orgId, workspace);
 
       await allure.step('PREP: Resolver identificador', async () => {
-        // Para 200 usa preferentemente SLUG; si no hay, cae a ID
+        
         if (exp === 200) {
           if (!workspace || (!workspace.name && !workspace.id)) {
             throw new Error('No hay workspace del fixture (revisa KEY/TOKEN e import del fixture).');
@@ -68,7 +67,7 @@ for (const row of rows) {
 
       let res;
 
-      // 2) Hacer la llamada correcta según el caso
+      
       if (caseId === 'WS-API-APIRG-GET-004' || !resolvedOrgId) {
         res = await allure.step('GET /organization (sin id) — endpoint incorrecto', async () => {
           const r = await getWorkspaceWithoutId(request, { hdrCase });
@@ -86,7 +85,7 @@ for (const row of rows) {
           return r;
         });
 
-        // 3) Fallback id<->slug si corresponde
+        
         if (exp === 200 && res.status() === 400) {
           const txt = await res.text().catch(() => '');
           if (/invalid id/i.test(txt) && workspace) {
@@ -97,7 +96,7 @@ for (const row of rows) {
                 attach('Response Status (GET fallback)', { status: r2.status() });
                 attach('Response Headers (GET fallback)', r2.headers());
                 attach('Response Body (GET fallback)', await r2.text(), 'application/json');
-                res = r2; // actualiza respuesta para validaciones
+                res = r2; 
                 resolvedOrgId = alt;
               });
             }
@@ -105,14 +104,14 @@ for (const row of rows) {
         }
       }
 
-      // 4) Status esperado
+      
       await allure.step('VALIDATE: Status esperado', async () => {
         await expectStatus(res, exp);
       });
 
-      // 5) Validaciones según positivo/negativo
+      
       if (exp === 200) {
-        await allure.step('VALIDATE: Schema + performance', async () => {
+        await allure.step('VALIDATE: Schema + respuestas', async () => {
           await validateGetWorkspaceResponse(res, { schema: schema200, maxMs: 2000 });
         });
       } else {

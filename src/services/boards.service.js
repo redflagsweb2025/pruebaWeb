@@ -10,7 +10,7 @@ async function apiCreateBoard(request, { name, idOrganization }) {
   if (!res.ok()) throw new Error(`No se pudo crear Board: ${res.status()} ${await res.text()}`);
   return res.json();
 }
-/** Obtiene datos de Board (shortUrl para UI) */
+/** Obtiene datos de Board ( para UI) */
 async function apiGetBoard(request, idBoard) {
   const url = withAuth(`/boards/${idBoard}`);
   const res = await request.get(url);

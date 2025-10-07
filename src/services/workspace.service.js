@@ -42,7 +42,7 @@ async function createWorkspace(request, payload, options = {}) {
   if (!finalHeaders['Content-Type'])
     finalHeaders['Content-Type'] = 'application/json';
 
-  // 📘 Logging opcional (ayuda a depurar el teardown)
+  //  Logg de ayuda al depurar el teardown)
   console.log(`[CREATE] ${payload.displayName} → URL: ${url}`);
 
   return request.post(url, {
@@ -51,7 +51,7 @@ async function createWorkspace(request, payload, options = {}) {
   });
 }
 
-// ================== DELETE (sin cambios) ==================
+// ================== DELETE  ==================
 async function deleteWorkspace(request, idOrSlug, options = {}) {
   const { headers = {}, auth = {} } = options;
   const qs = authQS(auth);
@@ -62,7 +62,7 @@ async function deleteWorkspace(request, idOrSlug, options = {}) {
   return request.delete(url, { headers: finalHeaders });
 }
 
-// ================== GET (igual) ==================
+// ================== GET  ==================
 async function getWorkspace(request, idOrSlug, options = {}) {
   const { headers = {}, auth = {} } = options;
   const qs = authQS(auth);
@@ -72,13 +72,13 @@ async function getWorkspace(request, idOrSlug, options = {}) {
   return request.get(url, { headers: finalHeaders });
 }
 
-// ================== EXPORTS ==================
 
 
+//endpoint válido requiere orgId en la ruta
 async function getWorkspaces(request, { idOrName, hdrCase = 'default' } = {}) {
   const qp = materializeAuthParams(hdrCase);
 
-  // endpoint válido requiere orgId en la ruta
+  
   const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrName)}?${qp.toString()}`;
   return await request.get(url);
 }
@@ -93,16 +93,15 @@ async function getWorkspaceWithoutId(request, { hdrCase = 'default' } = {}) {
   const { materializeAuthParams } = require('../resources/headers/workspacesheaderssinjson');
   const BASE = process.env.TRELLO_BASE || process.env.API_BASE || 'https://api.trello.com/1';
   const qp = materializeAuthParams(hdrCase);
-  // endpoint mal escrito a propósito (singular) para forzar 404
   const url = `${BASE}/organization?${qp.toString()}`;
   return await request.get(url);
 }
 
-
+//create para el fixture 
 async function createWorkspacefix(request, { displayName, name, desc = '', hdrCase = 'default' } = {}) {
   const qp = materializeAuthParams(hdrCase);
   const url = `${BASE_URL}/organizations?${qp.toString()}`;
-  // Trello acepta campos como x-www-form-urlencoded o query; usamos form:
+  
   return await request.post(url, {
     form: { displayName, name, desc },
   });
@@ -123,7 +122,7 @@ async function updateWorkspacefix(
   const qp = materializeAuthParams(hdrCase);
   const url = `${BASE_URL}/organizations/${encodeURIComponent(idOrName)}?${qp.toString()}`;
 
-  // Solo manda campos presentes (evita ReferenceError y sobreescrituras con "undefined")
+  
   const form = {};
   if (displayName !== undefined) form.displayName = displayName;
   if (name !== undefined)        form.name        = name;
@@ -141,7 +140,7 @@ async function apiCreateWorkspace(request, { displayName, name }) {
   return res.json();
 }
 
-/** Elimina Workspace (borra boards, listas, tarjetas) para e2e */
+/** Elimina Workspace  para e2e */
 async function apiDeleteWorkspace(request, idWorkspace) {
   const url = withAuth(`/organizations/${idWorkspace}`);
   const res = await request.delete(url);

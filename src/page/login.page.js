@@ -1,4 +1,3 @@
-// src/page/ui/login/login.page.js
 class LoginPage {
   /**
    * @param {import('@playwright/test').Page} page
@@ -23,7 +22,7 @@ class LoginPage {
     this.continueFrame = this.authFrame.getByRole('button', { name: /continu(ar|e)/i });
     this.loginBtnFrame = this.authFrame.getByRole('button', { name: /iniciar sesi[oó]n|log in|continu(ar|e)/i });
 
-    // ----- Fallbacks EXACTOS (según tus capturas) -----
+     
     // ROOT
     this.usernameRootExact = page.locator('input#username-uid1, input[name="username"][type="email"]');
     this.passwordRootExact = page.locator('input#password, input[name="password"][type="password"]');
@@ -33,11 +32,11 @@ class LoginPage {
     this.passwordFrameExact = this.authFrame.locator('input#password, input[name="password"][type="password"]');
     this.submitFrameExact   = this.authFrame.locator('button#login-submit');
 
-    // Trello legacy (rara vez)
+    // Trello legacy
     this.userLegacy   = page.locator('input#user');
     this.continueTrel = page.locator('#login, button#login');
 
-    // Avatar (varias variantes conocidas)
+    // Avatar 
     this.avatar = page.locator([
       '[data-testid="header-member-menu-button"]',
       '[data-test-id="header-member-menu-button"]',
@@ -79,7 +78,7 @@ class LoginPage {
     } catch {}
   }
 
-  // --- helpers para elegir ROOT vs FRAME dinámicamente ---
+  //  para elegir ROOT vs FRAME dinámicamente ---
   async #inFrame() {
     try {
       const f = this.page.locator(
@@ -189,14 +188,14 @@ class LoginPage {
       await this._waitAuthorizeRedirectOrForm(10000);
     }
 
-    // “Usar otra cuenta” (si aparece)
+    // Usar otra cuenta (si aparece)
     const tryAnother = await this.#tryAnother();
     if (await tryAnother.isVisible({ timeout: 1200 }).catch(() => false)) {
       await tryAnother.click();
       await this.#dbg('try another account');
     }
 
-    // Paso 1: Email + Continuar (accesible → exacto)
+    // Paso 1: Email + Continuar 
     const user = await this.#username();
     const userEx = await this.#usernameExact();
     const cont = await this.#continueBtn();
@@ -254,7 +253,7 @@ class LoginPage {
         : await this.passwordRoot.isVisible({ timeout: 500 }).catch(() => false);
       if (userVis || passVis) return;
 
-      // authorize/oidc
+      
       if (/(id|auth)\.atlassian\.com\/.*(oauth|oidc|authorize)/i.test(url)) {
         try {
           await this.page.waitForURL(/(trello\.com|id\.atlassian\.com\/login)/i, { timeout: 5000 });
@@ -279,7 +278,7 @@ class LoginPage {
   async logoutIfPossible() {
   const page = this.page;
 
-  // 1) Si no estamos logueados, nada que hacer
+  // 1) Si no estamos logueados
   const isLogged = await this._waitAvatar(1500);
   if (!isLogged) return;
 
@@ -287,7 +286,7 @@ class LoginPage {
   try {
     await this.avatar.click({ timeout: 3000 });
   } catch {
-    // Fallbacks conocidos de botón de avatar
+    
     const avatarBtn = page.locator([
       '[data-testid="header-member-menu-button"]',
       '[data-test-id="header-member-menu-button"]',
@@ -304,7 +303,7 @@ class LoginPage {
   await popover.waitFor({ timeout: 5000 }).catch(() => {}); // a veces no tiene testid pero igual sirve
 
   // 4) Click en "Cerrar sesión"
-  //    Preferimos el data-testid exacto que se ve en tu captura
+ 
   let clicked = false;
   const logoutBtnByTestid = page.locator('button[data-testid="account-menu-logout"]').first();
   if (await logoutBtnByTestid.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -336,7 +335,6 @@ class LoginPage {
     ]);
     return;
   } catch {
-    // Fallback duro: ir a /logout y forzar
     await page.goto('https://trello.com/logout', { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForURL(/(id\.atlassian\.com|trello\.com\/login)/i, { timeout: 5000 }).catch(() => {});
   }

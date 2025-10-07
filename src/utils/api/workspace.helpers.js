@@ -1,4 +1,4 @@
-// test/helpers/validate_workspace_create.js
+
 const {
   expectHeader,
   expectJsonContentType,
@@ -12,7 +12,7 @@ const {
   assertCommonError,
 } = require('../../../src/assertions/api/workspace.assert');
 
-// --- Allure safe wrapper (no-op si no está disponible) ---
+// --- Allure  ---
 let allureReal;
 try { ({ allure: allureReal } = require('allure-playwright')); } catch { allureReal = null; }
 const allureSafe = {
@@ -30,19 +30,19 @@ const allureSafe = {
 
 
 
-// const { trelloNormalizeSlug } = require('../../src/utils/slug');
+// Para normalizar el url de workspaces segun el name (trello lo normaliza)
 
 function trelloNormalizeSlug(s) {
   return String(s || '')
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')        // espacios -> guiones
-    .replace(/[^a-z0-9-]/g, '')  // solo permitidos
-    .replace(/-/g, '');          // Trello elimina guiones en "name"
+    .replace(/\s+/g, '-')        
+    .replace(/[^a-z0-9-]/g, '')  
+    .replace(/-/g, '');          
 }
 
 /**
- * Valida respuesta 200 de CREATE (POST /organizations)
+ * Valida respuesta 200 en  crear
  */
 async function validateCreateWorkspaceResponse(res, payload, { schema, maxMs = 1500 } = {}) {
   expectJsonContentType(res);
@@ -85,8 +85,7 @@ async function validateCreateWorkspaceResponse(res, payload, { schema, maxMs = 1
 }
 
 /**
- * Valida respuesta 200 de GET (/organizations/{idOrName})
- * Shape básico + (opcional) schema.
+ * Valida respuesta 200 de GET 
  */
 async function validateGetWorkspaceResponse(res, { schema, maxMs = 1500 } = {}) {
   expectJsonContentType(res);
@@ -114,10 +113,8 @@ async function validateGetWorkspaceResponse(res, { schema, maxMs = 1500 } = {}) 
 }
 
 /**
- * Igual que el create: compara GET contra el payload de creación (displayName y slug),
+ * compara GET contra el payload de creación (displayName y name),
  * y opcionalmente contra el recurso creado (id y name exacto).
- * - payload: el usado en POST (para validar normalización del slug)
- * - created: { id, name, displayName } del POST por si quieres igualdad estricta
  */
 async function validateGetWorkspaceResponseLikeCreate(
   res,
@@ -125,7 +122,7 @@ async function validateGetWorkspaceResponseLikeCreate(
 ) {
   const body = await validateGetWorkspaceResponse(res, { schema, maxMs });
 
-  // Comparar con payload original (misma lógica que create)
+  
   if (payload?.displayName !== undefined) {
     if (String(body.displayName) !== String(payload.displayName)) {
       throw new Error(
@@ -142,7 +139,7 @@ async function validateGetWorkspaceResponseLikeCreate(
     }
   }
 
-  // Comparar con lo que devolvió el POST
+  
   if (created?.id !== undefined) {
     if (String(body.id) !== String(created.id)) {
       throw new Error(`GET.id distinto al creado. Esperado "${created.id}" | Recibido "${body.id}"`);
@@ -226,7 +223,7 @@ function tagsFrom(marker) {
   return markers.length ? ' ' + markers.map(m => `@${m}`).join(' ') : '';
 }
 
-// --- util: adjuntar seguro ---
+// --- util: adjuntar  ---
 function attach(name, data, mime = 'application/json') {
   try {
     const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
@@ -236,7 +233,7 @@ function attach(name, data, mime = 'application/json') {
   }
 }
 
-// --- util: nombre de feature por método + recurso (fallbacks) ---
+// --- util: nombre de feature por método para pasarlo a allure ---
 function featureFrom(method, resource = 'Workspace') {
   const m = String(method || '').toUpperCase();
   const base = String(resource || 'Workspace').trim();
@@ -248,15 +245,14 @@ function featureFrom(method, resource = 'Workspace') {
 }
 
 /**
- * ✅ META reusable para Allure en cualquier endpoint.
- * @param {object} row              Fila del CSV (title, caseId, marker, severity, expectedStatus, type, etc.)
- * @param {object} opts
- * @param {string} opts.hdrCase     Variante de headers/auth (p.ej. default, noKey, badToken)
- * @param {string} opts.method      HTTP method ('GET'|'POST'|'PUT'|'DELETE'|...)
- * @param {string} [opts.resource]  Recurso lógico (p.ej. 'Workspace', 'List', 'Board')
- * @param {string} [opts.epic]      Epic explícito (default: 'Trello Workspaces')
- * @param {string} [opts.feature]   Feature explícita (si no, se infiere con featureFrom)
- * @param {string} [opts.owner]     Owner por override (si no, usa env ALLURE_OWNER)
+ *  META reusable para Allure en cualquier endpoint.
+ * @param {object} row             
+ * @param {string} opts.hdrCase    
+ * @param {string} opts.method     
+ * @param {string} [opts.resource]  
+ * @param {string} [opts.epic]     
+ * @param {string} [opts.feature]   
+ * @param {string} [opts.owner]     
  */
 function applyAllureMeta(row, {
   hdrCase,
@@ -300,7 +296,7 @@ function applyAllureMeta(row, {
   const finalOwner = owner || process.env.ALLURE_OWNER;
   if (finalOwner) allureSafe.owner(finalOwner);
 
-  // Metadata útil como attachment
+  // Metadata útil como aadjunto
   attach('Case Meta', {
     method: String(method || '').toUpperCase(),
     resource,

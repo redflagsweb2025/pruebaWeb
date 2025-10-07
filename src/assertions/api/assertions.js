@@ -20,8 +20,7 @@ function validateSchema(schema, payload) {
 }
 
 /**
- * ✅ Faltaba definir esta función
- * Permite validar un solo status (número) o una lista de permitidos (array).
+ * Permite validar un solo status 
  */
 function expectStatus(response, expected) {
   const st = response.status();
