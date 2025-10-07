@@ -1,6 +1,6 @@
 const { test, expect, expectStatus , expectLatencyUnder } = require('../../../fixtures/api.fixture.js');
 const { validateSchema, expectHeaderContains  } = require('../../../src/assertions/api/assertions.js');
-const schema = require('../../../src/resources/schemas/api/boards/createBoard.schema.json');
+const schema = require('../../../src/resources/schemas/createBoard.schema.json');
 
 const {
   updateBoard, getBoard,

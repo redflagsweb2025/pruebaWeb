@@ -88,7 +88,7 @@ class LoginPage {
       return (await f.count()) > 0;
     } catch { return false; }
   }
-  async #ensureAuthFrame(timeout = 8000) {
+  async #ensureAuthFrame(timeout = 5000) {
     await this.page.waitForSelector(
       'iframe#aid-auth-widget, iframe[name="aid-auth-widget"], iframe[title*="Atlassian account"]',
       { timeout }
@@ -207,7 +207,7 @@ class LoginPage {
       await user.fill(email).catch(async () => { await userEx.fill(email); });
       await cont.click().catch(async () => { await contEx.click(); });
       await this.#dbg('email filled + continue');
-      await this.page.waitForLoadState('networkidle', { timeout: 12000 }).catch(() => {});
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     }
 
     // Paso 2: Password + Iniciar sesión (mismo botón #login-submit)
@@ -216,7 +216,7 @@ class LoginPage {
     const loginAcc = await this.#loginBtn();
     const loginEx  = await this.#submitExact();
 
-    const passVisible = await pass.isVisible({ timeout: 12000 }).catch(() => false) ||
+    const passVisible = await pass.isVisible({ timeout: 5000 }).catch(() => false) ||
                         await passEx.isVisible({ timeout: 500 }).catch(() => false);
     if (passVisible) {
       await pass.fill(password).catch(async () => { await passEx.fill(password); });
@@ -226,7 +226,7 @@ class LoginPage {
       else await loginEx.click();
 
       await this.#dbg('password filled + submit');
-      await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     }
 
     // Espera salto a Trello o forzar
@@ -238,7 +238,7 @@ class LoginPage {
     }
   }
 
-  async _waitAuthorizeRedirectOrForm(timeout = 20000) {
+  async _waitAuthorizeRedirectOrForm(timeout = 5000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const url = this.page.url();
@@ -257,7 +257,7 @@ class LoginPage {
       // authorize/oidc
       if (/(id|auth)\.atlassian\.com\/.*(oauth|oidc|authorize)/i.test(url)) {
         try {
-          await this.page.waitForURL(/(trello\.com|id\.atlassian\.com\/login)/i, { timeout: 6000 });
+          await this.page.waitForURL(/(trello\.com|id\.atlassian\.com\/login)/i, { timeout: 5000 });
           return;
         } catch {}
       }
@@ -266,7 +266,7 @@ class LoginPage {
     }
   }
 
-  async _waitAvatar(timeout = 10000) {
+  async _waitAvatar(timeout = 5000) {
     try {
       await this.acceptCookiesIfAny();
       await this.avatar.waitFor({ timeout });
@@ -331,14 +331,14 @@ class LoginPage {
   // 6) Esperar redirección a login/Atlassian o que desaparezca el avatar
   try {
     await Promise.race([
-      page.waitForURL(/(id\.atlassian\.com|trello\.com\/login)/i, { timeout: 8000 }),
-      this.avatar.waitFor({ state: 'detached', timeout: 8000 }),
+      page.waitForURL(/(id\.atlassian\.com|trello\.com\/login)/i, { timeout: 5000 }),
+      this.avatar.waitFor({ state: 'detached', timeout: 5000 }),
     ]);
     return;
   } catch {
     // Fallback duro: ir a /logout y forzar
     await page.goto('https://trello.com/logout', { waitUntil: 'domcontentloaded' }).catch(() => {});
-    await page.waitForURL(/(id\.atlassian\.com|trello\.com\/login)/i, { timeout: 8000 }).catch(() => {});
+    await page.waitForURL(/(id\.atlassian\.com|trello\.com\/login)/i, { timeout: 5000 }).catch(() => {});
   }
 }
 

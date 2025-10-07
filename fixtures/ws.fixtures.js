@@ -1,6 +1,6 @@
 // fixtures/cleanup.fixture.js
 const { test: base, expect } = require('@playwright/test');
-const { deleteWorkspace , createWorkspacefix, deleteWorkspacefix } = require('../src/services/workspace_page');
+const { deleteWorkspace , createWorkspacefix, deleteWorkspacefix } = require('../src/services/workspace.service');
 
 const test = base.extend({
   cleaner: async ({ request }, use, testInfo) => {

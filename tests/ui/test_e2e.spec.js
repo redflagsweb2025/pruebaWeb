@@ -1,38 +1,40 @@
+const { ensureCoverImage } = require('../../src/utils/api/e2e.helpers')
+
 // tests/e2e/trello.e2e.spec.js
 const { test, expect } = require('@playwright/test');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
-//const samplePath = 'E:\\LIGIA CHOQUEVILLCA\\diplomado\\modulo 6\\modulo_6-automatizacion_web\\proyecto_trello\\pruebaWeb\\src\\resources\\images\\invierno.jpg';
-// ⬇️ Faker: carga compatible ESM/CJS
-let faker;
 
-// Page Objects
-const { LoginPage } = require('../../../src/page/ui/login/login.page');
-const { BoardPage } = require('../../../src/page/ui/boards/boards.page');
+// Page Objects (UI)
+const { LoginPage } = require('../../src/page/login.page');
+const { BoardPage } = require('../../src/page/boards.page');
 
-// Services
-const { apiCreateWorkspace, apiDeleteWorkspace } = require('../../../src/services/workspace_page');
-const { apiCreateBoard, apiGetBoard } = require('../../../src/services/boards.service');
-const { apiCreateList } = require('../../../src/services/lists.services');
+// Assertions (UI)
+const { expectCardHasCoverOnBoard } = require('../../src/assertions/ui/board.assert');
+
+// Services (API)
+const { apiCreateWorkspace, apiDeleteWorkspace } = require('../../src/services/workspace.service');
+const { apiCreateBoard, apiGetBoard } = require('../../src/services/boards.service');
+const { apiCreateList } = require('../../src/services/lists.services');
 
 dotenv.config();
 
+let faker;
 test.beforeAll(async () => {
-  try {
-    ({ faker } = await import('@faker-js/faker')); // ESM (v9/10)
-  } catch {
-    ({ faker } = require('@faker-js/faker'));       // CJS (v8)
-  }
+  try { ({ faker } = await import('@faker-js/faker')); }
+  catch { ({ faker } = require('@faker-js/faker')); }
 });
+
 test.setTimeout(10 * 60 * 1000);
+
 test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → teardown → logout @e2e', async ({ page, request, context }) => {
-  // Solo requiere estas dos del .env
+  // Credenciales
   const email = process.env.TRELLO_EMAIL;
   const password = process.env.TRELLO_PASSWORD;
   expect(email && password, 'Define TRELLO_EMAIL y TRELLO_PASSWORD en tu .env').toBeTruthy();
 
-  // Defaults internos (no dependen de .env)
+  // Defaults
   const now = Date.now();
   const WS_DISPLAY = 'E2E Workspace';
   const WS_SLUG = `e2e-ws-${now}`;
@@ -42,6 +44,7 @@ test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → 
 
   // IDs + shortUrl
   let workspaceId, boardId, boardShortUrl;
+
 
   // 1) API: crear todo
   await test.step('API: Crear Workspace', async () => {
@@ -69,7 +72,7 @@ test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → 
     expect(boardShortUrl).toBeTruthy();
   });
 
-  // 2) UI: Login (➡️ directo al tablero usando continueTo)
+  // 2) UI: Login (→ directo al board con continueTo)
   const login = new LoginPage(page);
   await test.step('UI: Login', async () => {
     await login.login(email, password, { continueTo: boardShortUrl });
@@ -95,10 +98,9 @@ test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → 
 
   // 5) UI: Mover una tarjeta a lista B
   const toMove = fakeCards[0].title;
-    await test.step(`UI: Mover tarjeta "${toMove}" → "${LIST_B}"`, async () => {
+  await test.step(`UI: Mover tarjeta "${toMove}" → "${LIST_B}"`, async () => {
     await board.moveCardToList(toMove, LIST_B);
-    await expect(board.cardInList(LIST_B, toMove)).toBeVisible({ timeout: 15000 });
-
+    await expect(board.cardInList(LIST_B, toMove)).toBeVisible({ timeout: 5000 });
   });
 
   // 6) UI: Archivar otra tarjeta
@@ -110,36 +112,19 @@ test('E2E visible: login → (API) workspace/board/listas → (UI) tarjetas → 
     ).toHaveCount(0);
   });
 
+  // 7) UI: Portada de la tarjeta
+  const toCover = fakeCards[2].title;
+  await test.step(`UI: Establecer PORTADA en "${toCover}"`, async () => {
+    const fileToUpload = ensureCoverImage();
+    await board.setCardCoverImage(toCover, fileToUpload);
 
-// 7) UI: Portada de la tarjeta
-const toCover = fakeCards[2].title;
-
-await test.step(`UI: Establecer PORTADA en "${toCover}"`, async () => {
-  // usa tu imagen si existe, si no crea un PNG de prueba
-  const img = path.resolve('src', 'resources', 'images', 'invierno.jpg');
-  let fileToUpload = img;
-
-  if (!fs.existsSync(img)) {
-    const assetsDir = path.resolve('assets');
-    if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
-    fileToUpload = path.resolve(assetsDir, 'cover-demo.png');
-    if (!fs.existsSync(fileToUpload)) {
-      // crea un PNG pequeño válido
-      const png1x1 = Buffer.from(
-        '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c6360000002000150a0a4e50000000049454e44ae426082',
-        'hex'
-      );
-      fs.writeFileSync(fileToUpload, png1x1);
-    }
-  }
-
-  await board.setCardCoverImage(toCover, fileToUpload);
-  await board.expectCardHasCover(toCover); // verificación
-});
-
+    // verificar portada en el board
+    const card = board.cardByTitle(toCover);
+    await expectCardHasCoverOnBoard(page, card);
+  });
 
   // 8) Teardown total + logout
-  await test.step('TEARDOWN: Borrar Workspace por API (service)', async () => {
+  await test.step('TEARDOWN: Borrar Workspace por API', async () => {
     if (workspaceId) await apiDeleteWorkspace(request, workspaceId);
   });
 

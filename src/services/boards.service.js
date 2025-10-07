@@ -1,5 +1,5 @@
 const { cfg } = require('../utils/api/config.js');
-const { withAuth } = require('../../src/utils/api/e2e');
+const { withAuth } = require('../utils/api/e2e.helpers.js');
 
 
 
